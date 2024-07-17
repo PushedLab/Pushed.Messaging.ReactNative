@@ -42,7 +42,7 @@ export default function App() {
     const eventEmitter = new NativeEventEmitter(
       NativeModules.PushedReactNative
     );
-    let eventListener = eventEmitter.addListener(
+    const eventListener = eventEmitter.addListener(
       PushedEventTypes.PUSH_RECEIVED,
       (push: Push) => {
         console.log(push);
