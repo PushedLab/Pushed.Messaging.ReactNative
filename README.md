@@ -4,19 +4,13 @@
 ### Overview
 This package allows you to integrate the Pushed.ru push notification service into your React Native application.
 
-### Installation
-To install the package, use the following command:
-```bash
-npm install pushed-react-native
-```
-
 ### Usage Instructions
 Follow these steps to use the `pushed-react-native` package in your React Native application.
 
 #### 1. Install the Library
 Run the following command to install the library:
 ```bash
-npm install pushed-react-native@0.1.0 --registry=https://son.multifactor.dev:5443/repository/pushed-npm
+npm install pushed-react-native --registry=https://son.multifactor.dev:5443/repository/pushed-npm
 ```
 
 #### 2. Import the Necessary Methods and Types

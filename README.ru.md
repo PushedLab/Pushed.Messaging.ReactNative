@@ -1,17 +1,15 @@
 ## Pushed React Native - интеграция Pushed.ru и React Native
 ### Обзор
 Этот покет позволяет интегрировать службу push-уведомлений Pushed.ru в ваше приложение React Native. 
-### Установка
-Чтобы установить пакет, используйте следующую команду:
-```bash
-npm install pushed-react-native
-```
+### Примеры использования
+Вы можете посмотреть пример использования запустив приложение example из этого репозитория.
+
 ### Инструкция по использованию
 Выполните следующие шаги, чтобы использовать пакет pushed-react-native в своем приложении React Native.
 #### 1. Установите библиотеку
 Запустите следующую команду, чтобы установить библиотеку:
 ```bash
-npm install push-react-native@0.1.0 --registry=https://son.multifactor.dev:5443/repository/pushed-npm
+npm install pushed-react-native --registry=https://son.multifactor.dev:5443/repository/pushed-npm
 ```
 
 #### 2. Импортируйте необходимые методы и типы
