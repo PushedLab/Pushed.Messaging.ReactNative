@@ -44,10 +44,12 @@ export default function App() {
     );
     let eventListener = eventEmitter.addListener(
       PushedEventTypes.PUSH_RECEIVED,
-      (event) => {
-        const push = new Push(event);
-        console.log(push.body);
-        displayNotification(push.title, push.body);
+      (push: Push) => {
+        console.log(push);
+        displayNotification(
+          push?.title ?? '',
+          push?.body ?? JSON.stringify(push)
+        );
       }
     );
 

@@ -1,25 +1,26 @@
-# Pushed React Native Package
 
-## Overview
+## Pushed React Native Package
 
-The `pushed-react-native` package allows you to integrate push notification services into your React Native application. This package provides functionalities to start and stop the push service, handle push events, and display notifications.
+### Overview
+This package allows you to integrate the Pushed.ru push notification service into your React Native application.
 
-## Installation
-
+### Installation
 To install the package, use the following command:
-
 ```bash
 npm install pushed-react-native
 ```
 
-## Usage
+### Usage Instructions
+Follow these steps to use the `pushed-react-native` package in your React Native application.
 
-Below is an example of how to use the `pushed-react-native` package in a React Native application.
+#### 1. Install the Library
+Run the following command to install the library:
+```bash
+npm install pushed-react-native@0.1.0 --registry=https://son.multifactor.dev:5443/repository/pushed-npm
+```
 
-### Import the Package
-
-First, import the necessary modules from the package:
-
+#### 2. Import the Necessary Methods and Types
+Import the required methods and types from the library:
 ```javascript
 import {
   startService,
@@ -29,48 +30,77 @@ import {
 } from 'pushed-react-native';
 ```
 
-### Description of Each Method and Type
+#### 3. Subscribe to the `PushedEventTypes.PUSH_RECEIVED` Event
+Subscribe to the `PUSH_RECEIVED` event to handle incoming push notifications:
+```javascript
+import React, { useEffect } from 'react';
+import { NativeEventEmitter, NativeModules } from 'react-native';
+import { displayNotification } from './Notifee';
+
+useEffect(() => {
+  const eventEmitter = new NativeEventEmitter(NativeModules.PushedReactNative);
+  const eventListener = eventEmitter.addListener(
+    PushedEventTypes.PUSH_RECEIVED,
+    (push: Push) => {
+      console.log(push);
+      displayNotification(push.title, push.body);
+    }
+  );
+
+  // Remove the listener when the component unmounts
+  return () => {
+    eventListener.remove();
+  };
+}, []);
+```
+
+#### 4. Start the Foreground Service
+Use the `startService` function to start the foreground service that handles message reception:
+```javascript
+const handleStart = () => {
+  console.log('Starting Pushed Service');
+  startService('PushedService').then((newToken) => {
+    console.log(`Service has started: ${newToken}`);
+  });
+};
+```
+
+### 5. Stop the Foreground Service
+Use the `stopService` function to stop the foreground service when finished:
+```javascript
+const handleStop = () => {
+  stopService().then((message) => {
+    console.log(message);
+  });
+};
+```
+
+### Description of Methods and Types in the `pushed-react-native` Library
 
 #### `startService(serviceName: string): Promise<string>`
-
 This function starts the push notification service.
 
 - **Parameters:**
   - `serviceName`: A `string` representing the name of the service to start.
 
 - **Returns:**
-  - A `Promise<string>` that resolves with the service token when the service starts successfully.
+  - A `Promise<string>` that resolves with the device token needed for sending push notifications. See the example.
 
 #### `stopService(): Promise<string>`
-
 This function stops the push notification service.
 
 - **Returns:**
-  - A `Promise<string>` that resolves with a message indicating the service has been stopped.
+  - A `Promise<string>` that resolves with a message indicating that the service has been stopped.
 
 #### `PushedEventTypes`
-
-This is an enum that defines the types of events related to push notifications.
+This enum contains the types of events that the Pushed.ru system works with.
 
 - **Enum Values:**
-  - `PUSH_RECEIVED`: Represents an event type for when a push notification is received.
+  - `PUSH_RECEIVED`: Represents the event type for receiving a push notification.
 
 #### `Push`
-
-This is a class that represents a push notification.
-
-- **Properties:**
-  - `accessToken`: A `string` representing the access token.
-  - `body`: A `string` containing the body of the push notification.
-  - `messageId`: A `string` representing the message ID.
-  - `title`: A `string` containing the title of the push notification.
+This class represents a push notification and is a wrapper over an arbitrary key-value dictionary.
 
 - **Constructor:**
-  - `constructor(data: { accessToken: string; body: string; messageId: string; title: string })`
-    - Creates a new `Push` instance using the provided data.
-
-- **Methods:**
-  - `displayMessage(): string`
-    - Returns a string representation of the push message.
-  - `static fromStringJson(strin
-
+  - `constructor(data: { [key: string]: string })`
+    - Creates a new instance of `Push` using the provided data.

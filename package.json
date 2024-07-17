@@ -47,16 +47,16 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Gimemor/pushed-react-native.git"
+    "url": "git+https://github.com/PushedLab/Pushed.Messaging.ReactNative.git"
   },
-  "author": "Multifactor <oleg-423@yandex.ru> (https://github.com/Gimemor)",
+  "author": "Multifactor <o.brezhnev@multifactor.ru> (https://github.com/Gimemor)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Gimemor/pushed-react-native/issues"
+    "url": "https://github.com/PushedLab/Pushed.Messaging.ReactNative/issues"
   },
-  "homepage": "https://github.com/Gimemor/pushed-react-native#readme",
+  "homepage": "https://github.com/PushedLab/Pushed.Messaging.ReactNative#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://son.multifactor.dev:5443/repository/pushed-npm"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",

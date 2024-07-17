@@ -30,29 +30,9 @@ export enum PushedEventTypes {
 }
 
 export class Push {
-  accessToken: string;
-  body: string;
-  messageId: string;
-  title: string;
+  [key: string]: any;
 
-  constructor(data: {
-    accessToken: string;
-    body: string;
-    messageId: string;
-    title: string;
-  }) {
-    this.accessToken = data.accessToken;
-    this.body = data.body;
-    this.messageId = data.messageId;
-    this.title = data.title;
-  }
-
-  displayMessage(): string {
-    return `Title: ${this.title}, Body: ${this.body}`;
-  }
-
-  static fromStringJson(stringJson: string): Push {
-    const jsonData = JSON.parse(stringJson);
-    return new Push(jsonData);
+  constructor(data: { [key: string]: any }) {
+    Object.assign(this, data);
   }
 }
