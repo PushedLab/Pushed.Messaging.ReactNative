@@ -1,5 +1,6 @@
 package com.pushedreactnative
 
+import com.pushedreactnative.PushedReactNativeModule
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext

@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:usesCleartextTraffic="true"
         tools:targetApi="28"
-        tools:ignore="GoogleAppIndexingWarning"/>
+        tools:ignore="GoogleAppIndexingWarning">
+        <service
+            android:enabled="true"
+            android:exported="true"
+            android:name=".PushedBackgroundService"
+            android:foregroundServiceType="remoteMessaging"
+            android:stopWithTask="false" />
+    </application>
 </manifest>

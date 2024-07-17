@@ -1,2 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <service
+      android:enabled="true"
+      android:exported="true"
+      android:name=".PushedBackgroundService"
+      android:foregroundServiceType="remoteMessaging"
+      android:permission="TODO"
+      android:stopWithTask="false" />
+  </application>
 </manifest>
