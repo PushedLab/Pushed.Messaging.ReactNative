@@ -39,9 +39,9 @@
     "prepare": "bob build",
     "release": "release-it",
     "lint": "eslint .",
-    "lintFixAll":"eslint 'src/**/*.{js,jsx}'",
-    "prettierFixAll":"prettier --write 'src/**/*.{js,jsx}'",
-    "fix:lintPrettier":"yarn prettierFixAll && yarn lintFixAll"
+    "lintFixAll": "eslint 'src/**/*.{js,jsx}'",
+    "prettierFixAll": "prettier --write 'src/**/*.{js,jsx}'",
+    "fix:lintPrettier": "yarn prettierFixAll && yarn lintFixAll"
   },
   "keywords": [
     "react-native",
@@ -79,7 +79,7 @@
     "jest": "^29.7.0",
     "prettier": "^3.3.3",
     "react": "18.2.0",
-    "react-native": "0.74.3",
+    "react-native": "0.73.7",
     "react-native-builder-bob": "^0.26.0",
     "release-it": "^15.0.0",
     "turbo": "^1.10.7",
@@ -183,7 +183,7 @@
   },
   "create-react-native-library": {
     "type": "module-legacy",
-    "languages": "kotlin-objc",
-    "version": "0.38.2"
+    "languages": "kotlin-swift",
+    "version": "0.41.0"
   }
 }
