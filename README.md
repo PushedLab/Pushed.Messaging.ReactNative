@@ -69,6 +69,13 @@ const handleStop = () => {
 };
 ```
 
+#### Differences in iOS workflow
+
+1. Messages are delivered via the APNS service and are processed by the device itself in the background. 
+   startService can be called only once, to register a client token.
+2. You need to configure your application to work with apns in the Pushed control panel (see the article) [https://pushed.ru/docs/apns/]
+3. Make sure that the application has the Push Notifications and Background Modes -> Remote Notifications permissions
+
 ### Description of Methods and Types in the `pushed-react-native` Library
 
 #### `startService(serviceName: string): Promise<string>`
