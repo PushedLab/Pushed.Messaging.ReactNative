@@ -16,6 +16,8 @@ private var originalAppDelegateClass: AnyClass?
 public class PushedIosLib: NSProxy {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
+    private static var pushedLib: PushedReactNative?
+    
     /// Returns the current client token
     public static var clientToken: String? {
         return pushedToken
@@ -145,11 +147,15 @@ public class PushedIosLib: NSProxy {
     }
     
     /// Initializes the library
-    public static func setup(_ appDelegate: UIApplicationDelegate, completion: @escaping (String?) -> Void) {
+    public static func setup(
+        _ appDelegate: UIApplicationDelegate,
+        pushedLib: PushedReactNative,
+        completion: @escaping (String?) -> Void) {
         log("Start setup")
         pushedToken = nil
         tokenCompletion.append(completion)
         proxyAppDelegate(appDelegate)
+        PushedIosLib.pushedLib = pushedLib
         // Requesting notification permissions which may eventually trigger token refresh
         let res = requestNotificationPermissions()
         log("Res: \(res)")
@@ -274,10 +280,26 @@ public class PushedIosLib: NSProxy {
         }
         return method_getImplementation(method)
     }
-    
-    /// Redirects the message to the original handler
+
+    private static func convertObjectToJSON(_ object: Any) -> String? {
+        guard JSONSerialization.isValidJSONObject(object) else {
+            print("Invalid JSON object")
+            return nil
+        }
+        
+        do {
+            let data = try JSONSerialization.data(withJSONObject: object, options: .prettyPrinted)
+            return String(data: data, encoding: .utf8)
+        } catch let error {
+            print("Error converting object to JSON: \(error)")
+            return nil
+        }
+    }
+
+    /// Redirects the message to the original handler   
     private static func redirectMessage(_ application: UIApplication, in object: AnyObject, userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        log("No original implementation of didReceiveRemoteNotification method. Skipping...")
+        let payload = convertObjectToJSON(userInfo) ?? ""
+        pushedLib?.sendPushReceived(payload)
     }
     
     /// Handles APNs token registration

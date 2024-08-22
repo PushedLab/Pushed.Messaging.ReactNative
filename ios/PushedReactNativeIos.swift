@@ -3,15 +3,14 @@ import React
 import UIKit
 
 @objc(PushedReactNative)
-class PushedReactNative: NSObject {
+public class PushedReactNative: RCTEventEmitter {
   @objc(startService:withResolver:withRejecter:)
   func startService(serviceName: String,
                     resolve: @escaping RCTPromiseResolveBlock,
                     reject: @escaping RCTPromiseRejectBlock) {
     DispatchQueue.main.async {
-        var token = ""
         if let appDelegate = UIApplication.shared.delegate {
-            PushedIosLib.setup(appDelegate) { token in
+            PushedIosLib.setup(appDelegate, pushedLib: self) { token in
                 if let token = token {
                     resolve(token);
                 } else {
@@ -31,11 +30,29 @@ class PushedReactNative: NSObject {
   }
 
   @objc(addListener:)
-  func addListener(eventName: String) {
+  override public func addListener(_ eventName: String) {
+      super.addListener(eventName)
   }
 
   @objc(removeListeners:)
-  func removeListeners(count: Int) {
+  override public func removeListeners(_ count: Double) {
+      super.removeListeners(count)
+  }
+
+  override static public func moduleName() -> String! {
+      return "PushedReactNative"
+  }
+
+  override public func supportedEvents() -> [String]! {
+      return ["PUSH_RECEIVED"]
+  }
+
+  @objc public func sendPushReceived(_ message: String) {
+      sendEvent(withName: "PUSH_RECEIVED", body: ["message": message])
+  }
+
+  override static public func requiresMainQueueSetup() -> Bool {
+      return true
   }
 }
 
