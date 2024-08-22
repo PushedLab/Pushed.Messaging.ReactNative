@@ -11,9 +11,14 @@ class PushedReactNative: NSObject {
     DispatchQueue.main.async {
         var token = ""
         if let appDelegate = UIApplication.shared.delegate {
-            token = PushedIosLib.setup(appDelegate)
+            PushedIosLib.setup(appDelegate) { token in
+                if let token = token {
+                    resolve(token);
+                } else {
+                    resolve("Token not available yet")
+                }
+            }
         }
-        resolve(token);
     }
   }
 
