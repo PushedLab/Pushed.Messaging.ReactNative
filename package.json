@@ -1,6 +1,6 @@
 {
   "name": "pushed-react-native",
-  "version": "0.1.2",
+  "version": "0.1.5",
   "description": "Pushed Wrapper for react native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
