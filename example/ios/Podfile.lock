@@ -73,12 +73,11 @@ PODS:
   - hermes-engine/Pre-built (0.73.7)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
-  - pushed-react-native (0.1.2):
+  - pushed-react-native (0.1.6):
     - glog
-    - PushedMessagingiOSLibrary
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - PushedMessagingiOSLibrary (0.1.0)
+  - PushedMessagingiOSLibrary (0.1.1)
   - RCT-Folly (2022.05.16.00):
     - boost
     - DoubleConversion
@@ -1326,7 +1325,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   PushedMessagingiOSLibrary:
-    :commit: 1e986f0bf30ff6589c798c31a85dcc5f8db25ea6
+    :commit: f3bb75fb9cec7ca62387227a3e66f5a5c56a405e
     :git: https://github.com/PushedLab/Pushed.Messaging.iOS.Library.git
 
 SPEC CHECKSUMS:
@@ -1344,12 +1343,12 @@ SPEC CHECKSUMS:
   Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
   FlipperKit: 37525a5d056ef9b93d1578e04bc3ea1de940094f
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: 035f1e36e53b355cf70f6434d161b36e7d21fecd
+  glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   hermes-engine: 39589e9c297d024e90fe68f6830ff86c4e01498a
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  pushed-react-native: c2a467cbb71df6343dd14d6d2a37427b16125a25
-  PushedMessagingiOSLibrary: af7848310080ddff6c191551ecc4e67df8bcef30
+  pushed-react-native: 89f9f4b73028f90d4378b3ee21efb8f0d7d054ce
+  PushedMessagingiOSLibrary: 5a844edba1f8c7f25ffe2b4800efbe602fd858cb
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 77f73950d15b8c1a2b48ba5b79020c3003d1c9b5
   RCTTypeSafety: ede1e2576424d89471ef553b2aed09fbbcc038e3
@@ -1397,4 +1396,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 3a7baa82a2a0b0957f22ddfdac3a1730ea85881c
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

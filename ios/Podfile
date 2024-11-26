@@ -2,6 +2,4 @@ platform :ios, '13.0'
 
 target 'PushedReactNativeIos' do
     project 'PushedReactNativeIos'
-
-    pod 'PushedMessagingiOSLibrary', :git => 'https://github.com/PushedLab/Pushed.Messaging.iOS.Library.git'
 end
