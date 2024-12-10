@@ -1,5 +1,5 @@
 {
-  "name": "pushed-react-native",
+  "name": "@PushedLab/pushed-react-native",
   "version": "0.1.7",
   "description": "Pushed Wrapper for react native",
   "source": "./src/index.tsx",
@@ -59,7 +59,8 @@
   },
   "homepage": "https://github.com/PushedLab/Pushed.Messaging.ReactNative#readme",
   "publishConfig": {
-    "registry": "https://son.multifactor.dev:5443/repository/pushed-npm"
+    "registry": "https://son.multifactor.dev:5443/repository/pushed-npm",
+    "access": "public"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
