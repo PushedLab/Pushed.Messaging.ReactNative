@@ -1,0 +1,142 @@
+buildscript {
+  ext.getExtOrDefault = {name ->
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['Multipushed_' + name]
+  }
+
+  repositories {
+    google()
+    mavenCentral() 
+    maven { url 'https://developer.huawei.com/repo/' }
+  }
+
+  dependencies {
+    classpath "com.android.tools.build:gradle:8.7.2"
+    // noinspection DifferentKotlinGradleVersion
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}" 
+    classpath 'com.google.gms:google-services:4.4.2' 
+    classpath 'com.huawei.agconnect:agcp:1.9.1.300' 
+  }
+}
+
+allprojects {
+    repositories { 
+        google()
+        mavenCentral()
+        maven { url 'https://developer.huawei.com/repo/' }  
+        maven {
+            url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
+        }
+    } 
+    subprojects {
+        afterEvaluate { project ->
+            if (project.hasProperty('android')) {
+                project.android {
+                    buildFeatures {
+			aidl true
+                   }
+                }
+            }
+        }
+    }
+}
+
+def isNewArchitectureEnabled() {
+  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply plugin: 'com.huawei.agconnect'
+
+if (isNewArchitectureEnabled()) {
+  apply plugin: "com.facebook.react"
+}
+
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["Multipushed_" + name]).toInteger()
+}
+
+def supportsNamespace() {
+  def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+  def major = parsed[0].toInteger()
+  def minor = parsed[1].toInteger()
+
+  // Namespace support was added in 7.3.0
+  return (major == 7 && minor >= 3) || major >= 8
+}
+
+android {
+  if (supportsNamespace()) {
+    namespace "com.multipushed"
+
+    sourceSets {
+      main {
+        manifest.srcFile "src/main/AndroidManifestNew.xml" 
+        aidl.srcDirs = ['src/main/aidl']
+      }
+    }
+  }
+
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+
+  defaultConfig {
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+  }
+
+  buildFeatures {
+    buildConfig true
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+
+  lintOptions {
+    disable "GradleCompatible"
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+          java.srcDirs += [
+            "generated/java",
+            "generated/jni"
+          ]
+      }
+    }
+  }
+}
+
+repositories {
+  google()
+  mavenCentral()
+}
+
+def kotlin_version = getExtOrDefault("kotlinVersion")
+
+dependencies {
+  implementation "com.facebook.react:react-android"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version" 
+  implementation platform('com.google.firebase:firebase-bom:32.7.0')
+  implementation 'com.google.firebase:firebase-messaging-ktx' 
+  implementation 'com.huawei.hms:push:6.12.0.300' 
+  implementation("ru.rustore.sdk:pushclient:2.0.0") 
+  implementation "androidx.security:security-crypto:1.1.0-alpha06"
+}
+
+if (isNewArchitectureEnabled()) {
+  react {
+    jsRootDir = file("../src/")
+    libraryName = "Multipushed"
+    codegenJavaPackageName = "com.multipushed"
+  }
+}
