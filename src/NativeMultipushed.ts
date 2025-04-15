@@ -7,6 +7,6 @@ export interface Spec extends TurboModule {
   startService(): Promise<string>;
 }
 
-const Multipushed = TurboModuleRegistry.getEnforcing<Spec>('Multipushed');
+const PushedReactNative = TurboModuleRegistry.getEnforcing<Spec>('Multipushed');
 
-export default Multipushed;
+export default PushedReactNative;

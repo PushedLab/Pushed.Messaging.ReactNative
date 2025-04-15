@@ -30,7 +30,12 @@ class MultipushedModule(
       pushedService = PushedService(activity, null)
 
       // start
-      val token = pushedService?.start(null)
+      pushedService = PushedService(activity, null)
+    // Передаем коллбэк при старте
+      val token = pushedService?.start { messageJson ->
+        sendEvent("PUSH_RECEIVED", messageJson.toString())
+        false
+      }
       promise.resolve(token)
     } catch (e: Exception) {
       promise.reject("SERVICE_ERROR", e)

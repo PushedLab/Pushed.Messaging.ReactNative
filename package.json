@@ -1,5 +1,5 @@
 {
-  "name": "multipushed",
+  "name": "pushed-react-native",
   "version": "0.1.0",
   "description": "This package allows you to integrate the Pushed.ru push notification service into your React Native application.",
   "source": "./src/index.tsx",
