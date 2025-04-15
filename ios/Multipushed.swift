@@ -2,15 +2,15 @@ import Foundation
 import React
 import UIKit
 
-@objc(PushedReactNative)
-public class PushedReactNative: RCTEventEmitter {
+@objc(Multipushed)
+public class Multipushed: RCTEventEmitter {
   @objc(startService:withResolver:withRejecter:)
   func startService(serviceName: String,
                     resolve: @escaping RCTPromiseResolveBlock,
                     reject: @escaping RCTPromiseRejectBlock) {
     DispatchQueue.main.async {
         if let appDelegate = UIApplication.shared.delegate {
-            PushedIosLib.setup(appDelegate, pushedLib: self) { token in
+            MultipushedLib.setup(appDelegate, pushedLib: self) { token in
                 if let token = token {
                     resolve(token);
                 } else {
@@ -24,7 +24,7 @@ public class PushedReactNative: RCTEventEmitter {
   @objc(stopService:withRejecter:)
   func stopService(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) {
         if let appDelegate = UIApplication.shared.delegate {
-            PushedIosLib.stop(appDelegate)
+            MultipushedLib.stop(appDelegate)
         }
         resolve(nil)
   }
@@ -40,7 +40,7 @@ public class PushedReactNative: RCTEventEmitter {
   }
 
   override static public func moduleName() -> String! {
-      return "PushedReactNative"
+      return "Multipushed"
   }
 
   override public func supportedEvents() -> [String]! {

@@ -2,7 +2,7 @@
 #import <React/RCTEventEmitter.h>
 #import <Foundation/Foundation.h>
 
-@interface RCT_EXTERN_MODULE(PushedReactNative, RCTEventEmitter<RCTBridgeModule>)
+@interface RCT_EXTERN_MODULE(Multipushed, RCTEventEmitter<RCTBridgeModule>)
 
 
 RCT_EXTERN_METHOD(startService:(NSString *)serviceName

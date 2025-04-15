@@ -1,5 +1,5 @@
 platform :ios, '13.0'
 
-target 'PushedReactNativeIos' do
-    project 'PushedReactNativeIos'
+target 'Multipushed' do
+    project 'Multipushed'
 end

@@ -12,11 +12,11 @@ private var originalAppDelegate: UIApplicationDelegate?
 private var appDelegateSubClass: AnyClass?
 private var originalAppDelegateClass: AnyClass?
 
-@objc(PushedIosLib)
-public class PushedIosLib: NSProxy {
+@objc(MultipushedLib)
+public class MultipushedLib: NSProxy {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
-    private static var pushedLib: PushedReactNative?
+    private static var pushedLib: Multipushed?
     
     /// Returns the current client token
     public static var clientToken: String? {
@@ -25,11 +25,11 @@ public class PushedIosLib: NSProxy {
     
     /// Logs events (debug only)
     private static func log(_ event: String) {
-        #if DEBUG
+        // #if DEBUG
         print(event)
         let log = UserDefaults.standard.string(forKey: "pushedLog") ?? ""
         UserDefaults.standard.set(log + "\(Date()): \(event)\n", forKey: "pushedLog")
-        #endif
+        // #endif
     }
     
     /// Returns the service log (debug only)
@@ -92,8 +92,8 @@ public class PushedIosLib: NSProxy {
                     }
                     
                     UserDefaults.standard.setValue(clientToken, forKey: "clientToken")
-                    PushedIosLib.pushedToken = clientToken
-                    PushedIosLib.isPushedInited(didReceivePushedClientToken: clientToken)
+                    MultipushedLib.pushedToken = clientToken
+                    MultipushedLib.isPushedInited(didReceivePushedClientToken: clientToken)
                 } else {
                     log("Data may be corrupted or in wrong format")
                     throw URLError(.badServerResponse)
@@ -149,13 +149,13 @@ public class PushedIosLib: NSProxy {
     /// Initializes the library
     public static func setup(
         _ appDelegate: UIApplicationDelegate,
-        pushedLib: PushedReactNative,
+        pushedLib: Multipushed,
         completion: @escaping (String?) -> Void) {
         log("Start setup")
         pushedToken = nil
         tokenCompletion.append(completion)
         proxyAppDelegate(appDelegate)
-        PushedIosLib.pushedLib = pushedLib
+        MultipushedLib.pushedLib = pushedLib
         // Requesting notification permissions which may eventually trigger token refresh
         let res = requestNotificationPermissions()
         log("Res: \(res)")
@@ -251,10 +251,10 @@ public class PushedIosLib: NSProxy {
         let originalClass = type(of: originalDelegate)
         
         let applicationApnsTokenSelector = #selector(application(_:didRegisterForRemoteNotificationsWithDeviceToken:))
-        proxyInstanceMethod(toClass: subClass, withSelector: applicationApnsTokenSelector, fromClass: PushedIosLib.self, fromSelector: applicationApnsTokenSelector, withOriginalClass: originalClass)
+        proxyInstanceMethod(toClass: subClass, withSelector: applicationApnsTokenSelector, fromClass: MultipushedLib.self, fromSelector: applicationApnsTokenSelector, withOriginalClass: originalClass)
         
         let applicationRemoteNotificationSelector = #selector(application(_:didReceiveRemoteNotification:fetchCompletionHandler:))
-        proxyInstanceMethod(toClass: subClass, withSelector: applicationRemoteNotificationSelector, fromClass: PushedIosLib.self, fromSelector: applicationRemoteNotificationSelector, withOriginalClass: originalClass)
+        proxyInstanceMethod(toClass: subClass, withSelector: applicationRemoteNotificationSelector, fromClass: MultipushedLib.self, fromSelector: applicationRemoteNotificationSelector, withOriginalClass: originalClass)
     }
     
     /// Proxies an instance method
@@ -304,45 +304,45 @@ public class PushedIosLib: NSProxy {
     
     /// Handles APNs token registration
     @objc
-    private func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        PushedIosLib.log("APNs token: \(deviceToken.hexString)")
-        PushedIosLib.refreshPushedToken(in: self, apnsToken: deviceToken.hexString)
+    public func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        MultipushedLib.log("APNs token: \(deviceToken.hexString)")
+        MultipushedLib.refreshPushedToken(in: self, apnsToken: deviceToken.hexString)
     }
     
     /// Handles received remote notifications
     @objc
-    private func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        PushedIosLib.log("Received message: \(userInfo)")
+    public func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        MultipushedLib.log("Received message: \(userInfo)")
         
         var message = userInfo
         if let dataString = userInfo["data"] as? String {
             do {
                 if let jsonData = try JSONSerialization.jsonObject(with: dataString.data(using: .utf8)!, options: .mutableContainers) as? [AnyHashable: Any] {
                     message["data"] = jsonData
-                    PushedIosLib.log("Parsed data: \(jsonData)")
+                    MultipushedLib.log("Parsed data: \(jsonData)")
                 }
             } catch {
-                PushedIosLib.log("Data is a simple string.")
+                MultipushedLib.log("Data is a simple string.")
             }
         }
         
         if let messageId = userInfo["messageId"] as? String {
-            PushedIosLib.log("Message ID: \(messageId)")
-            PushedIosLib.confirmMessage(messageId: messageId, application: application, in: self, userInfo: message, fetchCompletionHandler: completionHandler)
+            MultipushedLib.log("Message ID: \(messageId)")
+            MultipushedLib.confirmMessage(messageId: messageId, application: application, in: self, userInfo: message, fetchCompletionHandler: completionHandler)
         } else {
-            PushedIosLib.log("No message ID found.")
-            PushedIosLib.redirectMessage(application, in: self, userInfo: message, fetchCompletionHandler: completionHandler)
+            MultipushedLib.log("No message ID found.")
+            MultipushedLib.redirectMessage(application, in: self, userInfo: message, fetchCompletionHandler: completionHandler)
         }
     }
     
     /// Notifies when pushed is initialized
     @objc
     static func isPushedInited(didReceivePushedClientToken pushedToken: String) {
-        PushedIosLib.log("Pushed token: \(pushedToken)")
-        PushedIosLib.tokenCompletion.forEach {
+        MultipushedLib.log("Pushed token: \(pushedToken)")
+        MultipushedLib.tokenCompletion.forEach {
             $0(pushedToken)
         }
-        PushedIosLib.tokenCompletion = []
+        MultipushedLib.tokenCompletion = []
     }
 }
 
