@@ -1,19 +1,32 @@
-
 ## Pushed React Native Package
 
 ### Overview
 This package allows you to integrate the Pushed.ru push notification service into your React Native application.
 
-### Usage Instructions
-Follow these steps to use the `pushed-react-native` package in your React Native application.
+### Installation Options
 
-#### 1. Install the Library
-Run the following command to install the library:
+#### Option 1: Install from GitHub
+Run the following command to install the library directly from GitHub:
+```bash
+npm install github:PushedLab/Pushed.Messaging.ReactNative
+```
+
+Or you can specify a specific version or branch:
+```bash
+npm install github:PushedLab/Pushed.Messaging.ReactNative#main
+npm install github:PushedLab/Pushed.Messaging.ReactNative#v0.1.7
+```
+
+#### Option 2: Install from Private Registry
+If you have access to the private registry:
 ```bash
 npm install pushed-react-native --registry=https://son.multifactor.dev:5443/repository/pushed-npm
 ```
 
-#### 2. Import the Necessary Methods and Types
+### Usage Instructions
+Follow these steps to use the `pushed-react-native` package in your React Native application.
+
+#### 1. Import the Necessary Methods and Types
 Import the required methods and types from the library:
 ```javascript
 import {
@@ -21,10 +34,10 @@ import {
   stopService,
   PushedEventTypes,
   Push,
-} from 'pushed-react-native';
+} from '@PushedLab/pushed-react-native';
 ```
 
-#### 3. Subscribe to the `PushedEventTypes.PUSH_RECEIVED` Event
+#### 2. Subscribe to the `PushedEventTypes.PUSH_RECEIVED` Event
 Subscribe to the `PUSH_RECEIVED` event to handle incoming push notifications:
 ```javascript
 import React, { useEffect } from 'react';
@@ -48,7 +61,7 @@ useEffect(() => {
 }, []);
 ```
 
-#### 4. Start the Foreground Service
+#### 3. Start the Foreground Service
 Use the `startService` function to start the foreground service that handles message reception:
 ```javascript
 const handleStart = () => {
@@ -59,7 +72,7 @@ const handleStart = () => {
 };
 ```
 
-### 5. Stop the Foreground Service
+#### 4. Stop the Foreground Service
 Use the `stopService` function to stop the foreground service when finished:
 ```javascript
 const handleStop = () => {
