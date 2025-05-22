@@ -1,0 +1,45 @@
+# Development folders
+.github
+.vscode
+.idea
+docs
+example
+scripts
+
+# Build artifacts
+coverage
+.nyc_output
+
+# Git and CI configs
+.git
+.gitattributes
+.circleci
+.travis.yml
+.github
+.gitlab-ci.yml
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*
+
+# Development configs
+.prettierrc
+.eslintrc
+.eslintignore
+.editorconfig
+.prettierrc.json
+lefthook.yml
+
+# Cache
+.turbo
+.yarn/cache
+.yarn/install-state.gz
+
+# Ignore example app files
+example/ 

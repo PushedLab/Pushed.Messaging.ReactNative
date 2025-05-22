@@ -58,10 +58,6 @@
     "url": "https://github.com/PushedLab/Pushed.Messaging.ReactNative/issues"
   },
   "homepage": "https://github.com/PushedLab/Pushed.Messaging.ReactNative#readme",
-  "publishConfig": {
-    "registry": "https://son.multifactor.dev:5443/repository/pushed-npm",
-    "access": "public"
-  },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
     "@eslint/js": "^9.7.0",

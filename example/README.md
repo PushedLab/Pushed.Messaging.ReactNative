@@ -1,3 +1,35 @@
+# Pushed React Native Example
+
+This is an example project demonstrating how to use the `@PushedLab/pushed-react-native` package for integrating push notifications from Pushed.ru into your React Native application.
+
+## Installing the Package
+
+### Option 1: Install from GitHub
+You can install the package directly from GitHub:
+
+```bash
+npm install github:PushedLab/Pushed.Messaging.ReactNative
+```
+
+Or specify a specific version or branch:
+```bash
+npm install github:PushedLab/Pushed.Messaging.ReactNative#main
+npm install github:PushedLab/Pushed.Messaging.ReactNative#v0.1.7
+```
+
+### Option 2: Use Local Version
+For development, you can link to a local version by adding this to your package.json:
+
+```json
+"dependencies": {
+  "@PushedLab/pushed-react-native": "file:/path/to/Pushed.Messaging.ReactNative"
+}
+```
+
+Then run `npm install` or `yarn` to install the package.
+
+---
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
