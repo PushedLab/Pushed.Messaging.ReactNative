@@ -5,7 +5,7 @@ This package allows you to integrate the Pushed.ru push notification service int
 
 ### Installation Options
 
-#### Option 1: Install from GitHub
+#### Install from GitHub
 Run the following command to install the library directly from GitHub:
 ```bash
 npm install github:PushedLab/Pushed.Messaging.ReactNative
@@ -15,12 +15,6 @@ Or you can specify a specific version or branch:
 ```bash
 npm install github:PushedLab/Pushed.Messaging.ReactNative#main
 npm install github:PushedLab/Pushed.Messaging.ReactNative#v0.1.7
-```
-
-#### Option 2: Install from Private Registry
-If you have access to the private registry:
-```bash
-npm install pushed-react-native --registry=https://son.multifactor.dev:5443/repository/pushed-npm
 ```
 
 ### Usage Instructions
