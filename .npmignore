@@ -40,6 +40,7 @@ lefthook.yml
 .turbo
 .yarn/cache
 .yarn/install-state.gz
+.yarn
 
 # Ignore example app files
 example/ 
