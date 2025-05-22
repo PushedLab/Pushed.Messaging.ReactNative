@@ -44,11 +44,7 @@ public class PushedIosLib: NSProxy {
             "clientToken": clientToken,
             "deviceSettings": [["deviceToken": apnsToken, "transportKind": "Apns"]]
         ]
-        #if DEBUG
-            let url = URL(string: "https://sub.pushed.dev/tokens")!
-        #else
-            let url = URL(string: "https://sub.pushed.ru/tokens")!
-        #endif
+        let url = URL(string: "https://sub.pushed.ru/tokens")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")

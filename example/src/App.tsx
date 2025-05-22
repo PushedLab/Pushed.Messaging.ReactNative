@@ -13,7 +13,7 @@ import {
   stopService,
   PushedEventTypes,
   Push,
-} from 'pushed-react-native';
+} from '@PushedLab/pushed-react-native';
 import { displayNotification, initNotifications } from './Notifee';
 
 export default function App() {
