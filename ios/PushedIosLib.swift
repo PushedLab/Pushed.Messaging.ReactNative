@@ -109,7 +109,11 @@ public class PushedIosLib: NSProxy {
         let loginString = String(format: "%@:%@", clientToken, messageId)
             .data(using: .utf8)!
             .base64EncodedString()
-        let url = URL(string: "https://pub.pushed.ru/v1/confirm?transportKind=Apns")
+        guard let url = URL(string: "https://pub.pushed.ru/v1/confirm?transportKind=Apns") else {
+            log("Invalid URL for confirming message")
+            redirectMessage(application, in: object, userInfo: userInfo, fetchCompletionHandler: completionHandler)
+            return
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -128,6 +132,10 @@ public class PushedIosLib: NSProxy {
                 log("\((response as? HTTPURLResponse)?.statusCode ?? 0): Invalid Response received from the server")
                 redirectMessage(application, in: object, userInfo: userInfo, fetchCompletionHandler: completionHandler)
                 return
+            }
+            
+            if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                log("Confirm response data: \(responseString)")
             }
             
             log("Message confirmed successfully")
