@@ -109,11 +109,7 @@ public class PushedIosLib: NSProxy {
         let loginString = String(format: "%@:%@", clientToken, messageId)
             .data(using: .utf8)!
             .base64EncodedString()
-        #if DEBUG
-            let url = URL(string: "https://pub.pushed.dev/v1/confirm?transportKind=Apns")!
-        #else
-            let url = URL(string: "https://pub.pushed.ru/v1/confirm?transportKind=Apns")!
-        #endif
+        let url = URL(string: "https://pub.pushed.ru/v1/confirm?transportKind=Apns")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
