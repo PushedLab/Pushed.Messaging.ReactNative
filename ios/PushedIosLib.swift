@@ -18,6 +18,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
+    private static var shownMessageIds: Set<String> = []
     
     /// Returns the current client token
     public static var clientToken: String? {
@@ -394,12 +395,34 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - UNUserNotificationCenterDelegate
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let userInfo = notification.request.content.userInfo
-        PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
+        if let messageId = userInfo["messageId"] as? String {
+            if !Self.shownMessageIds.contains(messageId) {
+                PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
+                Self.shownMessageIds.insert(messageId)
+                PushedIosLib.log("[Interaction] willPresent: show sent for messageId=\(messageId)")
+            } else {
+                PushedIosLib.log("[Interaction] willPresent: show already sent for messageId=\(messageId)")
+            }
+        } else {
+            PushedIosLib.log("[Interaction] willPresent: no messageId in userInfo")
+        }
         completionHandler([.sound, .badge])
     }
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         let userInfo = response.notification.request.content.userInfo
-        PushedIosLib.sendInteractionEvent(2, userInfo: userInfo) // Click
+        if let messageId = userInfo["messageId"] as? String {
+            if !Self.shownMessageIds.contains(messageId) {
+                PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
+                Self.shownMessageIds.insert(messageId)
+                PushedIosLib.log("[Interaction] didReceive: show sent for messageId=\(messageId)")
+            } else {
+                PushedIosLib.log("[Interaction] didReceive: show already sent for messageId=\(messageId)")
+            }
+            PushedIosLib.sendInteractionEvent(2, userInfo: userInfo) // Click
+            PushedIosLib.log("[Interaction] didReceive: click sent for messageId=\(messageId)")
+        } else {
+            PushedIosLib.log("[Interaction] didReceive: no messageId in userInfo")
+        }
         completionHandler()
     }
 
