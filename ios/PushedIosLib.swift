@@ -39,68 +39,72 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     
     /// Refreshes the pushed token
     private static func refreshPushedToken(in object: AnyObject, apnsToken: String) {
-        let clientToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
-        let parameters: [String: Any] = [
-            "clientToken": clientToken,
-            "deviceSettings": [["deviceToken": apnsToken, "transportKind": "Apns"]]
-        ]
-        let url = URL(string: "https://sub.pushed.ru/tokens")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
-        } catch {
-            log("JSON Serialization Error: \(error.localizedDescription)")
-            return
-        }
-        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                log("Post Request Error: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
-                log("Invalid Response received from the server")
-                return
-            }
-            
-            guard let responseData = data else {
-                log("No Data received from the server")
-                return
-            }
-            
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            let permissionGranted = settings.authorizationStatus == .authorized
+            let clientToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
+            let parameters: [String: Any] = [
+                "clientToken": clientToken,
+                "deviceSettings": [[
+                    "deviceToken": apnsToken,
+                    "transportKind": "Apns",
+                    "displayPushNotificationsPermission": permissionGranted,
+                    "operatingSystem": "ios"
+                ]]
+            ]
+            log("[Token] Sending parameters: \(parameters)")
+            let url = URL(string: "https://sub.pushed.ru/tokens")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
             do {
-                if let jsonResponse = try JSONSerialization.jsonObject(with: responseData, options: .mutableContainers) as? [String: Any] {
-                    if let responseDataString = String(data: responseData, encoding: .utf8) {
-                        log("Response Data: \(responseDataString)")
-                    } else {
-                        log("Unable to convert response data to String")
-                    }
-                    
-                    guard let clientToken = jsonResponse["token"] as? String else {
-                        log("Error with pushed token")
-                        return
-                    }
-                    
-                    UserDefaults.standard.setValue(clientToken, forKey: "clientToken")
-                    PushedIosLib.pushedToken = clientToken
-                    PushedIosLib.isPushedInited(didReceivePushedClientToken: clientToken)
-                } else {
-                    log("Data may be corrupted or in wrong format")
-                    throw URLError(.badServerResponse)
+                request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+                if let bodyString = String(data: request.httpBody ?? Data(), encoding: .utf8) {
+                    log("[Token] HTTP body: \(bodyString)")
                 }
             } catch {
-                log("JSON Parsing Error: \(error.localizedDescription)")
+                log("JSON Serialization Error: \(error.localizedDescription)")
+                return
             }
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    log("Post Request Error: \(error.localizedDescription)")
+                    return
+                }
+                guard let httpResponse = response as? HTTPURLResponse,
+                      (200...299).contains(httpResponse.statusCode) else {
+                    log("Invalid Response received from the server")
+                    return
+                }
+                guard let responseData = data else {
+                    log("No Data received from the server")
+                    return
+                }
+                do {
+                    if let jsonResponse = try JSONSerialization.jsonObject(with: responseData, options: .mutableContainers) as? [String: Any] {
+                        if let responseDataString = String(data: responseData, encoding: .utf8) {
+                            log("Response Data: \(responseDataString)")
+                        } else {
+                            log("Unable to convert response data to String")
+                        }
+                        guard let clientToken = jsonResponse["token"] as? String else {
+                            log("Error with pushed token")
+                            return
+                        }
+                        UserDefaults.standard.setValue(clientToken, forKey: "clientToken")
+                        PushedIosLib.pushedToken = clientToken
+                        PushedIosLib.isPushedInited(didReceivePushedClientToken: clientToken)
+                    } else {
+                        log("Data may be corrupted or in wrong format")
+                        throw URLError(.badServerResponse)
+                    }
+                } catch {
+                    log("JSON Parsing Error: \(error.localizedDescription)")
+                }
+            }
+            // Perform the task
+            task.resume()
         }
-        
-        // Perform the task
-        task.resume()
     }
     
     /// Confirms a message by ID
