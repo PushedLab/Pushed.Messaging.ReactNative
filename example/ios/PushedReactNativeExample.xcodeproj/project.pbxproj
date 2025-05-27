@@ -488,7 +488,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.PushedReactNativeIosExample;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.iOSPushedMessagingExample;
 				PRODUCT_NAME = PushedReactNativeExample;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -516,7 +516,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.PushedReactNativeIosExample;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.iOSPushedMessagingExample;
 				PRODUCT_NAME = PushedReactNativeExample;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

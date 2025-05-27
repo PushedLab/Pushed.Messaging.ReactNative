@@ -1,6 +1,7 @@
 import Foundation
 import React
 import UIKit
+import UserNotifications
 
 // Typealiases for method signatures
 private typealias ApplicationApnsToken = @convention(c) (Any, Selector, UIApplication, Data) -> Void
@@ -13,7 +14,7 @@ private var appDelegateSubClass: AnyClass?
 private var originalAppDelegateClass: AnyClass?
 
 @objc(PushedIosLib)
-public class PushedIosLib: NSProxy {
+public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
@@ -25,11 +26,9 @@ public class PushedIosLib: NSProxy {
     
     /// Logs events (debug only)
     private static func log(_ event: String) {
-        #if DEBUG
         print(event)
         let log = UserDefaults.standard.string(forKey: "pushedLog") ?? ""
         UserDefaults.standard.set(log + "\(Date()): \(event)\n", forKey: "pushedLog")
-        #endif
     }
     
     /// Returns the service log (debug only)
@@ -156,6 +155,8 @@ public class PushedIosLib: NSProxy {
         tokenCompletion.append(completion)
         proxyAppDelegate(appDelegate)
         PushedIosLib.pushedLib = pushedLib
+        // Set UNUserNotificationCenter delegate
+        UNUserNotificationCenter.current().delegate = sharedDelegate
         // Requesting notification permissions which may eventually trigger token refresh
         let res = requestNotificationPermissions()
         log("Res: \(res)")
@@ -344,6 +345,72 @@ public class PushedIosLib: NSProxy {
         }
         PushedIosLib.tokenCompletion = []
     }
+
+    /// Sends interaction event to the server
+    private static func sendInteractionEvent(_ interaction: Int, userInfo: [AnyHashable: Any]) {
+        guard let messageId = userInfo["messageId"] as? String else {
+            log("[Interaction] No messageId in userInfo: \(userInfo)")
+            return
+        }
+        let clientToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
+        let urlString = "https://api.multipushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
+        log("[Interaction] interaction=\(interaction), messageId=\(messageId), clientToken=\(clientToken), url=\(urlString)")
+        guard let url = URL(string: urlString) else {
+            log("[Interaction] Invalid URL: \(urlString)")
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        let basicAuth = "Basic " + Data("\(clientToken):\(messageId)".utf8).base64EncodedString()
+        log("[Interaction] Authorization header: \(basicAuth)")
+        request.addValue(basicAuth, forHTTPHeaderField: "Authorization")
+        let body: [String: Any] = [
+            "clientToken": clientToken,
+            "messageId": messageId
+        ]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            log("[Interaction] JSON Serialization Error: \(error.localizedDescription)")
+            return
+        }
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                log("[Interaction] Request error: \(error.localizedDescription)")
+                return
+            }
+            guard let httpResponse = response as? HTTPURLResponse else {
+                log("[Interaction] No HTTPURLResponse")
+                return
+            }
+            let status = httpResponse.statusCode
+            let responseBody = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
+            log("[Interaction] Response status: \(status), body: \(responseBody)")
+        }
+        task.resume()
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let userInfo = notification.request.content.userInfo
+        PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
+        completionHandler([.sound, .badge])
+    }
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        PushedIosLib.sendInteractionEvent(2, userInfo: userInfo) // Click
+        completionHandler()
+    }
+
+    // Singleton delegate for UNUserNotificationCenter
+    private static let sharedDelegate: PushedIosLib = {
+        return PushedIosLib()
+    }()
+
+    public override init() {
+        super.init()
+    }
 }
 
 // Extension to convert Data to a hex string
@@ -352,3 +419,4 @@ extension Data {
         return map { String(format: "%02.2hhx", $0) }.joined()
     }
 }
+
