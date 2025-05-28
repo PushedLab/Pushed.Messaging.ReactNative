@@ -161,7 +161,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         proxyAppDelegate(appDelegate)
         PushedIosLib.pushedLib = pushedLib
         // Set UNUserNotificationCenter delegate
-        UNUserNotificationCenter.current().delegate = sharedDelegate
+        // UNUserNotificationCenter.current().delegate = sharedDelegate
         // Requesting notification permissions which may eventually trigger token refresh
         let res = requestNotificationPermissions()
         log("Res: \(res)")
@@ -397,6 +397,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     }
 
     // MARK: - UNUserNotificationCenterDelegate
+    /*
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let userInfo = notification.request.content.userInfo
         if let messageId = userInfo["messageId"] as? String {
@@ -429,6 +430,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         }
         completionHandler()
     }
+    */
 
     // Singleton delegate for UNUserNotificationCenter
     private static let sharedDelegate: PushedIosLib = {
