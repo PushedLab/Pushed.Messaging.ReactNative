@@ -52,7 +52,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                 ]]
             ]
             log("[Token] Sending parameters: \(parameters)")
-            let url = URL(string: "https://sub.pushed.ru/tokens")!
+            let url = URL(string: "https://sub.pushed.dev/tokens")!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -113,7 +113,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         let loginString = String(format: "%@:%@", clientToken, messageId)
             .data(using: .utf8)!
             .base64EncodedString()
-        guard let url = URL(string: "https://pub.pushed.ru/v1/confirm?transportKind=Apns") else {
+        guard let url = URL(string: "https://pub.pushed.dev/v1/confirm?transportKind=Apns") else {
             log("Invalid URL for confirming message")
             redirectMessage(application, in: object, userInfo: userInfo, fetchCompletionHandler: completionHandler)
             return
@@ -377,7 +377,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
-        let urlString = "https://api.multipushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
+        let urlString = "https://api.multipushed.dev/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
         log("[Interaction] \(interactionName): messageId=\(messageId), clientToken=\(clientToken.prefix(10))..., url=\(urlString)")
         
         guard let url = URL(string: urlString) else {
