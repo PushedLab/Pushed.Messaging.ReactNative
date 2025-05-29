@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
-  TextInput,
   Text,
+  TouchableOpacity,
+  Image,
+  Clipboard,
+  Alert,
+  StatusBar,
 } from 'react-native';
 import {
   startService,
@@ -13,6 +17,7 @@ import { initNotifications } from './Notifee';
 export default function App() {
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [serviceActive, setServiceActive] = useState(false);
 
   useEffect(() => {
     initNotifications();
@@ -22,6 +27,7 @@ export default function App() {
     startService('PushedService').then((newToken: string) => {
       console.log(`Service has started: ${newToken}`);
       setToken(newToken);
+      setServiceActive(true);
       setIsLoading(false);
     }).catch((error: any) => {
       console.error('Failed to start service:', error);
@@ -48,25 +54,48 @@ export default function App() {
     // };
   }, []);
 
+  const copyToClipboard = () => {
+    Clipboard.setString(token);
+    Alert.alert('Copied!', 'Token copied to clipboard');
+  };
+
   return (
     <View style={styles.container}>
-      {isLoading ? (
-        <Text style={styles.loadingLabel}>Initializing Pushed Service...</Text>
-      ) : token ? (
-        <>
-          <Text style={styles.label}>Pushed Token:</Text>
-          <TextInput
-            style={styles.textInput}
-            value={token}
-            editable={false}
-            selectTextOnFocus={true}
-            multiline={true}
-          />
-          <Text style={styles.statusLabel}>Service is running</Text>
-        </>
-      ) : (
-        <Text style={styles.errorLabel}>Failed to initialize service</Text>
-      )}
+      <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
+      
+      {/* Логотип PUSHED */}
+      <View style={styles.logoContainer}>
+        <Image 
+          source={require('../assets/pushed_logo.png')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Service status */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Service status</Text>
+        <Text style={[styles.statusText, serviceActive ? styles.activeStatus : styles.inactiveStatus]}>
+          {isLoading ? 'Loading...' : serviceActive ? 'Active' : 'Service not active'}
+        </Text>
+      </View>
+
+      {/* Client token */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Client token</Text>
+        <Text style={styles.tokenText} numberOfLines={2} ellipsizeMode="middle">
+          {token || 'No token available'}
+        </Text>
+        
+        {token && (
+          <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
+            <View style={styles.copyIconContainer}>
+              <Text style={styles.copyIcon}>📋</Text>
+            </View>
+            <Text style={styles.copyButtonText}>Copy token</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -74,40 +103,66 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 2,
-    display: 'flex',
-    flexDirection: 'column',
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+  },
+  logoContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    marginBottom: 60,
   },
-  label: {
+  logo: {
+    width: 200,
+    height: 60,
+  },
+  section: {
+    marginBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#ffffff',
+    textAlign: 'center',
     marginBottom: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
   },
-  textInput: {
-    minHeight: 80,
-    borderColor: 'gray',
-    borderWidth: 1,
+  statusText: {
+    fontSize: 18,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  activeStatus: {
+    color: '#4CAF50',
+  },
+  inactiveStatus: {
+    color: '#F44336',
+  },
+  tokenText: {
+    fontSize: 14,
+    color: '#ffffff',
+    textAlign: 'center',
     marginBottom: 20,
     paddingHorizontal: 10,
-    paddingVertical: 10,
-    width: '90%',
-    textAlign: 'center',
-    backgroundColor: '#f5f5f5',
+    lineHeight: 20,
   },
-  loadingLabel: {
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2a2a2a',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginHorizontal: 20,
+  },
+  copyIconContainer: {
+    marginRight: 10,
+  },
+  copyIcon: {
     fontSize: 16,
-    color: 'blue',
   },
-  statusLabel: {
-    fontSize: 14,
-    color: 'green',
-    fontWeight: 'bold',
-  },
-  errorLabel: {
+  copyButtonText: {
+    color: '#ffffff',
     fontSize: 16,
-    color: 'red',
+    fontWeight: '500',
   },
 });
