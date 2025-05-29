@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,7 +13,6 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		74228E64BEAE44ABC8FA2E2F /* libPods-PushedReactNativeExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B2C8CF1855992529F21ADD3E /* libPods-PushedReactNativeExample.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		A82637C12DE70D4F00A95BD8 /* PushedNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A82637BA2DE70D4F00A95BD8 /* PushedNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFD5EB571FF09B4FBDB468DE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4EBE0671B634238E9DF78862 /* PrivacyInfo.xcprivacy */; };
 		F3E0771BC23B3BB6DD7534C9 /* libPods-PushedReactNativeExample-PushedReactNativeExampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 03907FC36451D29D795014A8 /* libPods-PushedReactNativeExample-PushedReactNativeExampleTests.a */; };
 /* End PBXBuildFile section */
@@ -26,13 +25,6 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = PushedReactNativeExample;
 		};
-		A82637BF2DE70D4F00A95BD8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A82637B92DE70D4F00A95BD8;
-			remoteInfo = PushedNotificationService;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,7 +34,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				A82637C12DE70D4F00A95BD8 /* PushedNotificationService.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -67,25 +58,10 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = PushedReactNativeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84C68A762C7743BD00873AD2 /* PushedReactNativeExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = PushedReactNativeExample.entitlements; path = PushedReactNativeExample/PushedReactNativeExample.entitlements; sourceTree = "<group>"; };
 		91F9B68BB25BD02E7D43DB28 /* Pods-PushedReactNativeExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushedReactNativeExample.debug.xcconfig"; path = "Target Support Files/Pods-PushedReactNativeExample/Pods-PushedReactNativeExample.debug.xcconfig"; sourceTree = "<group>"; };
-		A82637BA2DE70D4F00A95BD8 /* PushedNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushedNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2C8CF1855992529F21ADD3E /* libPods-PushedReactNativeExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PushedReactNativeExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FF0CCC3C2F36B9E7702C533B /* Pods-PushedReactNativeExample-PushedReactNativeExampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushedReactNativeExample-PushedReactNativeExampleTests.release.xcconfig"; path = "Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A82637C52DE70D4F00A95BD8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = A82637B92DE70D4F00A95BD8 /* PushedNotificationService */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		A82637BB2DE70D4F00A95BD8 /* PushedNotificationService */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (A82637C52DE70D4F00A95BD8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PushedNotificationService; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		00E356EB1AD99517003FC87E /* Frameworks */ = {
@@ -101,13 +77,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				74228E64BEAE44ABC8FA2E2F /* libPods-PushedReactNativeExample.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A82637B72DE70D4F00A95BD8 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,7 +139,6 @@
 				13B07FAE1A68108700A75B9A /* PushedReactNativeExample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* PushedReactNativeExampleTests */,
-				A82637BB2DE70D4F00A95BD8 /* PushedNotificationService */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -185,7 +153,6 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* PushedReactNativeExample.app */,
 				00E356EE1AD99517003FC87E /* PushedReactNativeExampleTests.xctest */,
-				A82637BA2DE70D4F00A95BD8 /* PushedNotificationService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -241,34 +208,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				A82637C02DE70D4F00A95BD8 /* PBXTargetDependency */,
 			);
 			name = PushedReactNativeExample;
 			productName = PushedReactNativeExample;
 			productReference = 13B07F961A680F5B00A75B9A /* PushedReactNativeExample.app */;
 			productType = "com.apple.product-type.application";
-		};
-		A82637B92DE70D4F00A95BD8 /* PushedNotificationService */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A82637C62DE70D4F00A95BD8 /* Build configuration list for PBXNativeTarget "PushedNotificationService" */;
-			buildPhases = (
-				A82637B62DE70D4F00A95BD8 /* Sources */,
-				A82637B72DE70D4F00A95BD8 /* Frameworks */,
-				A82637B82DE70D4F00A95BD8 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				A82637BB2DE70D4F00A95BD8 /* PushedNotificationService */,
-			);
-			name = PushedNotificationService;
-			packageProductDependencies = (
-			);
-			productName = PushedNotificationService;
-			productReference = A82637BA2DE70D4F00A95BD8 /* PushedNotificationService.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -285,9 +229,6 @@
 					};
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
-					};
-					A82637B92DE70D4F00A95BD8 = {
-						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
@@ -306,7 +247,6 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* PushedReactNativeExample */,
 				00E356ED1AD99517003FC87E /* PushedReactNativeExampleTests */,
-				A82637B92DE70D4F00A95BD8 /* PushedNotificationService */,
 			);
 		};
 /* End PBXProject section */
@@ -326,13 +266,6 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				CFD5EB571FF09B4FBDB468DE /* PrivacyInfo.xcprivacy in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A82637B82DE70D4F00A95BD8 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -503,13 +436,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A82637B62DE70D4F00A95BD8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -517,11 +443,6 @@
 			isa = PBXTargetDependency;
 			target = 13B07F861A680F5B00A75B9A /* PushedReactNativeExample */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
-		};
-		A82637C02DE70D4F00A95BD8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A82637B92DE70D4F00A95BD8 /* PushedNotificationService */;
-			targetProxy = A82637BF2DE70D4F00A95BD8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -788,87 +709,6 @@
 			};
 			name = Release;
 		};
-		A82637C32DE70D4F00A95BD8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = TGX69G64CM;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PushedNotificationService/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PushedNotificationService;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.iOSPushedMessagingExample.PushedNotificationService;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		A82637C42DE70D4F00A95BD8 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = TGX69G64CM;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PushedNotificationService/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PushedNotificationService;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.iOSPushedMessagingExample.PushedNotificationService;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -895,15 +735,6 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A82637C62DE70D4F00A95BD8 /* Build configuration list for PBXNativeTarget "PushedNotificationService" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A82637C32DE70D4F00A95BD8 /* Debug */,
-				A82637C42DE70D4F00A95BD8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -160,8 +160,11 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         tokenCompletion.append(completion)
         proxyAppDelegate(appDelegate)
         PushedIosLib.pushedLib = pushedLib
-        // Set UNUserNotificationCenter delegate
-        // UNUserNotificationCenter.current().delegate = sharedDelegate
+        
+        // Set UNUserNotificationCenter delegate - это критически важно для отслеживания нажатий!
+        UNUserNotificationCenter.current().delegate = sharedDelegate
+        log("UNUserNotificationCenter delegate set to PushedIosLib.sharedDelegate")
+        
         // Requesting notification permissions which may eventually trigger token refresh
         let res = requestNotificationPermissions()
         log("Res: \(res)")
@@ -304,8 +307,15 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
 
     /// Redirects the message to the original handler   
     private static func redirectMessage(_ application: UIApplication, in object: AnyObject, userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        let payload = convertObjectToJSON(userInfo) ?? ""
-        pushedLib?.sendPushReceived(payload)
+        log("[Native] Push received in background/foreground - processing natively only")
+        log("[Native] UserInfo: \(userInfo)")
+        
+        // Не отправляем в JS, только нативная обработка
+        // let payload = convertObjectToJSON(userInfo) ?? ""
+        // pushedLib?.sendPushReceived(payload)
+        
+        log("[Native] Calling completion handler with .newData")
+        completionHandler(.newData)
     }
     
     /// Handles APNs token registration
@@ -353,84 +363,129 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
 
     /// Sends interaction event to the server
     private static func sendInteractionEvent(_ interaction: Int, userInfo: [AnyHashable: Any]) {
+        let interactionName = interaction == 1 ? "SHOW" : (interaction == 2 ? "CLICK" : "UNKNOWN(\(interaction))")
+        log("[Interaction] Starting \(interactionName) event")
+        
         guard let messageId = userInfo["messageId"] as? String else {
-            log("[Interaction] No messageId in userInfo: \(userInfo)")
+            log("[Interaction] ERROR: No messageId in userInfo: \(userInfo)")
             return
         }
+        
         let clientToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
-        let urlString = "https://api.multipushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
-        log("[Interaction] interaction=\(interaction), messageId=\(messageId), clientToken=\(clientToken), url=\(urlString)")
-        guard let url = URL(string: urlString) else {
-            log("[Interaction] Invalid URL: \(urlString)")
+        if clientToken.isEmpty {
+            log("[Interaction] ERROR: clientToken is empty")
             return
         }
+        
+        let urlString = "https://api.multipushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
+        log("[Interaction] \(interactionName): messageId=\(messageId), clientToken=\(clientToken.prefix(10))..., url=\(urlString)")
+        
+        guard let url = URL(string: urlString) else {
+            log("[Interaction] ERROR: Invalid URL: \(urlString)")
+            return
+        }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
         let basicAuth = "Basic " + Data("\(clientToken):\(messageId)".utf8).base64EncodedString()
-        log("[Interaction] Authorization header: \(basicAuth)")
+        log("[Interaction] \(interactionName): Authorization header created")
         request.addValue(basicAuth, forHTTPHeaderField: "Authorization")
+        
         let body: [String: Any] = [
             "clientToken": clientToken,
             "messageId": messageId
         ]
+        
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            log("[Interaction] \(interactionName): Request body created successfully")
         } catch {
-            log("[Interaction] JSON Serialization Error: \(error.localizedDescription)")
+            log("[Interaction] ERROR: JSON Serialization Error: \(error.localizedDescription)")
             return
         }
+        
+        log("[Interaction] \(interactionName): Sending HTTP request...")
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                log("[Interaction] Request error: \(error.localizedDescription)")
+                log("[Interaction] \(interactionName): Request error: \(error.localizedDescription)")
                 return
             }
+            
             guard let httpResponse = response as? HTTPURLResponse else {
-                log("[Interaction] No HTTPURLResponse")
+                log("[Interaction] \(interactionName): ERROR: No HTTPURLResponse")
                 return
             }
+            
             let status = httpResponse.statusCode
             let responseBody = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
-            log("[Interaction] Response status: \(status), body: \(responseBody)")
+            
+            if (200...299).contains(status) {
+                log("[Interaction] \(interactionName): SUCCESS - Status: \(status), Body: \(responseBody)")
+            } else {
+                log("[Interaction] \(interactionName): ERROR - Status: \(status), Body: \(responseBody)")
+            }
         }
+        
         task.resume()
+        log("[Interaction] \(interactionName): HTTP task started")
     }
 
     // MARK: - UNUserNotificationCenterDelegate
-    /*
+
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let userInfo = notification.request.content.userInfo
+        PushedIosLib.log("[UNDelegate] willPresent called with userInfo: \(userInfo)")
+        
         if let messageId = userInfo["messageId"] as? String {
+            PushedIosLib.log("[UNDelegate] Found messageId: \(messageId)")
             if !Self.shownMessageIds.contains(messageId) {
+                PushedIosLib.log("[UNDelegate] Sending SHOW event for messageId: \(messageId)")
                 PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
                 Self.shownMessageIds.insert(messageId)
-                PushedIosLib.log("[Interaction] willPresent: show sent for messageId=\(messageId)")
+                PushedIosLib.log("[UNDelegate] SHOW event sent and messageId added to shown set")
             } else {
-                PushedIosLib.log("[Interaction] willPresent: show already sent for messageId=\(messageId)")
+                PushedIosLib.log("[UNDelegate] SHOW event already sent for messageId: \(messageId)")
             }
         } else {
-            PushedIosLib.log("[Interaction] willPresent: no messageId in userInfo")
+            PushedIosLib.log("[UNDelegate] WARNING: No messageId found in userInfo")
         }
-        completionHandler([.sound, .badge])
+        
+        PushedIosLib.log("[UNDelegate] Calling completionHandler with [.alert, .sound, .badge]")
+        completionHandler([.alert, .sound, .badge])
     }
+    
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         let userInfo = response.notification.request.content.userInfo
+        PushedIosLib.log("[UNDelegate] didReceive called with response actionIdentifier: \(response.actionIdentifier)")
+        PushedIosLib.log("[UNDelegate] didReceive userInfo: \(userInfo)")
+        
         if let messageId = userInfo["messageId"] as? String {
+            PushedIosLib.log("[UNDelegate] Found messageId: \(messageId)")
+            
+            // Отправляем SHOW если еще не отправляли
             if !Self.shownMessageIds.contains(messageId) {
+                PushedIosLib.log("[UNDelegate] Sending SHOW event for messageId: \(messageId) (from didReceive)")
                 PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
                 Self.shownMessageIds.insert(messageId)
-                PushedIosLib.log("[Interaction] didReceive: show sent for messageId=\(messageId)")
+                PushedIosLib.log("[UNDelegate] SHOW event sent and messageId added to shown set")
             } else {
-                PushedIosLib.log("[Interaction] didReceive: show already sent for messageId=\(messageId)")
+                PushedIosLib.log("[UNDelegate] SHOW event already sent for messageId: \(messageId)")
             }
+            
+            // Всегда отправляем CLICK при нажатии
+            PushedIosLib.log("[UNDelegate] Sending CLICK event for messageId: \(messageId)")
             PushedIosLib.sendInteractionEvent(2, userInfo: userInfo) // Click
-            PushedIosLib.log("[Interaction] didReceive: click sent for messageId=\(messageId)")
+            PushedIosLib.log("[UNDelegate] CLICK event sent for messageId: \(messageId)")
         } else {
-            PushedIosLib.log("[Interaction] didReceive: no messageId in userInfo")
+            PushedIosLib.log("[UNDelegate] WARNING: No messageId found in userInfo")
         }
+        
+        PushedIosLib.log("[UNDelegate] Calling completionHandler")
         completionHandler()
     }
-    */
+    
 
     // Singleton delegate for UNUserNotificationCenter
     private static let sharedDelegate: PushedIosLib = {
