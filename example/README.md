@@ -28,6 +28,35 @@ For development, you can link to a local version by adding this to your package.
 
 Then run `npm install` or `yarn` to install the package.
 
+## Usage in Your App
+
+To implement automatic service initialization in your own app, use this pattern:
+
+```typescript
+import { useEffect, useState } from 'react';
+import { startService, PushedEventTypes } from '@PushedLab/pushed-react-native';
+
+export default function App() {
+  const [token, setToken] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Auto-start the service
+    startService('PushedService')
+      .then((newToken) => {
+        setToken(newToken);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error('Failed to start service:', error);
+        setIsLoading(false);
+      });
+  }, []);
+
+  // Your app UI here...
+}
+```
+
 ---
 
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).

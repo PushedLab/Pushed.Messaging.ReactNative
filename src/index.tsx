@@ -25,6 +25,11 @@ export function stopService(): Promise<string> {
   return PushedReactNative.stopService();
 }
 
+// Функция для автоматической инициализации сервиса
+export function initializePushedService(): Promise<string> {
+  return startService('PushedService');
+}
+
 export enum PushedEventTypes {
   PUSH_RECEIVED = 'PUSH_RECEIVED',
 }
