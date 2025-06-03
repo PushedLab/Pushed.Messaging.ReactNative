@@ -2,6 +2,11 @@ import Foundation
 import React
 import UIKit
 
+// Helper to check if we're in an app extension
+private func isAppExtension() -> Bool {
+    return Bundle.main.bundlePath.hasSuffix(".appex")
+}
+
 @objc(PushedReactNative)
 public class PushedReactNative: RCTEventEmitter {
   @objc(startService:withResolver:withRejecter:)
@@ -9,13 +14,19 @@ public class PushedReactNative: RCTEventEmitter {
                     resolve: @escaping RCTPromiseResolveBlock,
                     reject: @escaping RCTPromiseRejectBlock) {
     DispatchQueue.main.async {
-        if let appDelegate = UIApplication.shared.delegate {
-            PushedIosLib.setup(appDelegate, pushedLib: self) { token in
-                if let token = token {
-                    resolve(token);
-                } else {
-                    resolve("Token not available yet")
-                }
+        var appDelegate: UIApplicationDelegate? = nil
+        
+        #if !APP_EXTENSION
+        if !isAppExtension() {
+            appDelegate = UIApplication.shared.delegate
+        }
+        #endif
+        
+        PushedIosLib.setup(appDelegate, pushedLib: self) { token in
+            if let token = token {
+                resolve(token);
+            } else {
+                resolve("Token not available yet")
             }
         }
     }
@@ -23,9 +34,15 @@ public class PushedReactNative: RCTEventEmitter {
 
   @objc(stopService:withRejecter:)
   func stopService(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) {
-        if let appDelegate = UIApplication.shared.delegate {
-            PushedIosLib.stop(appDelegate)
+        var appDelegate: UIApplicationDelegate? = nil
+        
+        #if !APP_EXTENSION
+        if !isAppExtension() {
+            appDelegate = UIApplication.shared.delegate
         }
+        #endif
+        
+        PushedIosLib.stop(appDelegate)
         resolve(nil)
   }
 

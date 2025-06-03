@@ -7,6 +7,10 @@ require Pod::Executable.execute_command('node', ['-p',
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
+
+# Enable modular headers for Swift pods compatibility
+use_modular_headers!
+
 source = 'https://github.com/PushedLab/Pushed.Messaging.iOS.Library.git'
 
 # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
@@ -26,9 +30,12 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# Store config for later use in post_install
+rn_config = nil
 
 target 'PushedReactNativeExample' do
   config = use_native_modules!
+  rn_config = config
   pod 'PushedMessagingiOSLibrary', :git => 'https://github.com/PushedLab/Pushed.Messaging.iOS.Library.git'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec', :modular_headers => true
 
@@ -47,13 +54,18 @@ target 'PushedReactNativeExample' do
     inherit! :complete
     # Pods for testing
   end
+end
 
-  post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false
-    )
-  end
+target 'AppNotiService' do
+  # Notification Service Extension - no React Native dependencies needed
+  # This extension handles notification processing in native iOS code only
+end
+
+post_install do |installer|
+  # React Native post install
+  react_native_post_install(
+    installer,
+    rn_config[:reactNativePath],
+    :mac_catalyst_enabled => false
+  )
 end

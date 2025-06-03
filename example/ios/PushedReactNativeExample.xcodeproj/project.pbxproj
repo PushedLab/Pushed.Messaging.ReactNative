@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,7 +13,9 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		74228E64BEAE44ABC8FA2E2F /* libPods-PushedReactNativeExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B2C8CF1855992529F21ADD3E /* libPods-PushedReactNativeExample.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		A82428B22DEF48C400AAC1EB /* AppNotiService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A82428AA2DEF48C400AAC1EB /* AppNotiService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFD5EB571FF09B4FBDB468DE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4EBE0671B634238E9DF78862 /* PrivacyInfo.xcprivacy */; };
+		D4678885C692BC991F5FEA09 /* libPods-AppNotiService.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D78DF4B964C2C13124581E4D /* libPods-AppNotiService.a */; };
 		F3E0771BC23B3BB6DD7534C9 /* libPods-PushedReactNativeExample-PushedReactNativeExampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 03907FC36451D29D795014A8 /* libPods-PushedReactNativeExample-PushedReactNativeExampleTests.a */; };
 /* End PBXBuildFile section */
 
@@ -25,6 +27,13 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = PushedReactNativeExample;
 		};
+		A82428B02DEF48C400AAC1EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A82428A92DEF48C400AAC1EB;
+			remoteInfo = AppNotiService;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -34,6 +43,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				A82428B22DEF48C400AAC1EB /* AppNotiService.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -52,16 +62,46 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = PushedReactNativeExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = PushedReactNativeExample/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = PushedReactNativeExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1646A6A900235A357B3E76A3 /* Pods-AppNotiService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AppNotiService.debug.xcconfig"; path = "Target Support Files/Pods-AppNotiService/Pods-AppNotiService.debug.xcconfig"; sourceTree = "<group>"; };
 		35DD4578FB13A956D18F9CD4 /* Pods-PushedReactNativeExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushedReactNativeExample.release.xcconfig"; path = "Target Support Files/Pods-PushedReactNativeExample/Pods-PushedReactNativeExample.release.xcconfig"; sourceTree = "<group>"; };
 		4DDEA12CF4649CF8E6C10980 /* Pods-PushedReactNativeExample-PushedReactNativeExampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushedReactNativeExample-PushedReactNativeExampleTests.debug.xcconfig"; path = "Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		4EBE0671B634238E9DF78862 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = PushedReactNativeExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		768C737BBD19EBB13B766278 /* Pods-AppNotiService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AppNotiService.release.xcconfig"; path = "Target Support Files/Pods-AppNotiService/Pods-AppNotiService.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = PushedReactNativeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84C68A762C7743BD00873AD2 /* PushedReactNativeExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = PushedReactNativeExample.entitlements; path = PushedReactNativeExample/PushedReactNativeExample.entitlements; sourceTree = "<group>"; };
 		91F9B68BB25BD02E7D43DB28 /* Pods-PushedReactNativeExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushedReactNativeExample.debug.xcconfig"; path = "Target Support Files/Pods-PushedReactNativeExample/Pods-PushedReactNativeExample.debug.xcconfig"; sourceTree = "<group>"; };
+		A82428AA2DEF48C400AAC1EB /* AppNotiService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AppNotiService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A82428C52DEF499000AAC1EB /* PushedReactNativeExampleDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = PushedReactNativeExampleDebug.entitlements; path = PushedReactNativeExample/PushedReactNativeExampleDebug.entitlements; sourceTree = "<group>"; };
 		B2C8CF1855992529F21ADD3E /* libPods-PushedReactNativeExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PushedReactNativeExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D78DF4B964C2C13124581E4D /* libPods-AppNotiService.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AppNotiService.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FF0CCC3C2F36B9E7702C533B /* Pods-PushedReactNativeExample-PushedReactNativeExampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushedReactNativeExample-PushedReactNativeExampleTests.release.xcconfig"; path = "Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A82428B32DEF48C400AAC1EB /* Exceptions for "AppNotiService" folder in "AppNotiService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A82428A92DEF48C400AAC1EB /* AppNotiService */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A82428AB2DEF48C400AAC1EB /* AppNotiService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A82428B32DEF48C400AAC1EB /* Exceptions for "AppNotiService" folder in "AppNotiService" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = AppNotiService;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		00E356EB1AD99517003FC87E /* Frameworks */ = {
@@ -77,6 +117,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				74228E64BEAE44ABC8FA2E2F /* libPods-PushedReactNativeExample.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A82428A72DEF48C400AAC1EB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D4678885C692BC991F5FEA09 /* libPods-AppNotiService.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,6 +151,7 @@
 		13B07FAE1A68108700A75B9A /* PushedReactNativeExample */ = {
 			isa = PBXGroup;
 			children = (
+				A82428C52DEF499000AAC1EB /* PushedReactNativeExampleDebug.entitlements */,
 				84C68A762C7743BD00873AD2 /* PushedReactNativeExample.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
@@ -122,6 +171,7 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				B2C8CF1855992529F21ADD3E /* libPods-PushedReactNativeExample.a */,
 				03907FC36451D29D795014A8 /* libPods-PushedReactNativeExample-PushedReactNativeExampleTests.a */,
+				D78DF4B964C2C13124581E4D /* libPods-AppNotiService.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -139,6 +189,7 @@
 				13B07FAE1A68108700A75B9A /* PushedReactNativeExample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* PushedReactNativeExampleTests */,
+				A82428AB2DEF48C400AAC1EB /* AppNotiService */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -153,6 +204,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* PushedReactNativeExample.app */,
 				00E356EE1AD99517003FC87E /* PushedReactNativeExampleTests.xctest */,
+				A82428AA2DEF48C400AAC1EB /* AppNotiService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -164,6 +216,8 @@
 				35DD4578FB13A956D18F9CD4 /* Pods-PushedReactNativeExample.release.xcconfig */,
 				4DDEA12CF4649CF8E6C10980 /* Pods-PushedReactNativeExample-PushedReactNativeExampleTests.debug.xcconfig */,
 				FF0CCC3C2F36B9E7702C533B /* Pods-PushedReactNativeExample-PushedReactNativeExampleTests.release.xcconfig */,
+				1646A6A900235A357B3E76A3 /* Pods-AppNotiService.debug.xcconfig */,
+				768C737BBD19EBB13B766278 /* Pods-AppNotiService.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -208,11 +262,33 @@
 			buildRules = (
 			);
 			dependencies = (
+				A82428B12DEF48C400AAC1EB /* PBXTargetDependency */,
 			);
 			name = PushedReactNativeExample;
 			productName = PushedReactNativeExample;
 			productReference = 13B07F961A680F5B00A75B9A /* PushedReactNativeExample.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A82428A92DEF48C400AAC1EB /* AppNotiService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A82428B42DEF48C400AAC1EB /* Build configuration list for PBXNativeTarget "AppNotiService" */;
+			buildPhases = (
+				46D38998BEC2D3C4705E5030 /* [CP] Check Pods Manifest.lock */,
+				A82428A62DEF48C400AAC1EB /* Sources */,
+				A82428A72DEF48C400AAC1EB /* Frameworks */,
+				A82428A82DEF48C400AAC1EB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A82428AB2DEF48C400AAC1EB /* AppNotiService */,
+			);
+			name = AppNotiService;
+			productName = AppNotiService;
+			productReference = A82428AA2DEF48C400AAC1EB /* AppNotiService.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -229,6 +305,9 @@
 					};
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
+					};
+					A82428A92DEF48C400AAC1EB = {
+						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
@@ -247,6 +326,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* PushedReactNativeExample */,
 				00E356ED1AD99517003FC87E /* PushedReactNativeExampleTests */,
+				A82428A92DEF48C400AAC1EB /* AppNotiService */,
 			);
 		};
 /* End PBXProject section */
@@ -266,6 +346,13 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				CFD5EB571FF09B4FBDB468DE /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A82428A82DEF48C400AAC1EB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,13 +383,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -339,17 +422,35 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
-			outputPaths = (
-			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample-PushedReactNativeExampleTests/Pods-PushedReactNativeExample-PushedReactNativeExampleTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		46D38998BEC2D3C4705E5030 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AppNotiService-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		9EDD967C60D99115B67D6410 /* [CP] Check Pods Manifest.lock */ = {
@@ -382,13 +483,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample/Pods-PushedReactNativeExample-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample/Pods-PushedReactNativeExample-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -403,13 +500,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample/Pods-PushedReactNativeExample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-PushedReactNativeExample/Pods-PushedReactNativeExample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -436,6 +529,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A82428A62DEF48C400AAC1EB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -443,6 +543,11 @@
 			isa = PBXTargetDependency;
 			target = 13B07F861A680F5B00A75B9A /* PushedReactNativeExample */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
+		};
+		A82428B12DEF48C400AAC1EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A82428A92DEF48C400AAC1EB /* AppNotiService */;
+			targetProxy = A82428B02DEF48C400AAC1EB /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -504,7 +609,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = PushedReactNativeExample/PushedReactNativeExample.entitlements;
+				CODE_SIGN_ENTITLEMENTS = PushedReactNativeExample/PushedReactNativeExampleDebug.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TGX69G64CM;
 				ENABLE_BITCODE = NO;
@@ -628,7 +733,10 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -701,11 +809,93 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A82428B52DEF48C400AAC1EB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1646A6A900235A357B3E76A3 /* Pods-AppNotiService.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = AppNotiService/AppNotiServiceDebug.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = TGX69G64CM;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AppNotiService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AppNotiService;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.iOSPushedMessagingExample.AppNotiService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A82428B62DEF48C400AAC1EB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 768C737BBD19EBB13B766278 /* Pods-AppNotiService.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = TGX69G64CM;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AppNotiService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AppNotiService;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.pushed.iOSPushedMessagingExample.AppNotiService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -735,6 +925,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A82428B42DEF48C400AAC1EB /* Build configuration list for PBXNativeTarget "AppNotiService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A82428B52DEF48C400AAC1EB /* Debug */,
+				A82428B62DEF48C400AAC1EB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -77,7 +77,7 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - PushedMessagingiOSLibrary (0.1.1)
+  - PushedMessagingiOSLibrary (1.0.1)
   - RCT-Folly (2022.05.16.00):
     - boost
     - DoubleConversion
@@ -1325,7 +1325,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   PushedMessagingiOSLibrary:
-    :commit: f3bb75fb9cec7ca62387227a3e66f5a5c56a405e
+    :commit: c9df8a9c45ad7270f5cbd3a1c434223699cf289c
     :git: https://github.com/PushedLab/Pushed.Messaging.iOS.Library.git
 
 SPEC CHECKSUMS:
@@ -1347,8 +1347,8 @@ SPEC CHECKSUMS:
   hermes-engine: 39589e9c297d024e90fe68f6830ff86c4e01498a
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  pushed-react-native: 9fcf5eeda3c0d8db91b984dc2e6694b40b5cce02
-  PushedMessagingiOSLibrary: 5a844edba1f8c7f25ffe2b4800efbe602fd858cb
+  pushed-react-native: 596a5379a907e34c67447136395e8fda9b6d87ca
+  PushedMessagingiOSLibrary: 4a2d836e80d5e3cdc6984962f66dffe392913207
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 77f73950d15b8c1a2b48ba5b79020c3003d1c9b5
   RCTTypeSafety: ede1e2576424d89471ef553b2aed09fbbcc038e3
@@ -1394,6 +1394,6 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: 47d399a73c0c0caa9ff824e5c657eae31215bfee
 
-PODFILE CHECKSUM: 3a7baa82a2a0b0957f22ddfdac3a1730ea85881c
+PODFILE CHECKSUM: a767c6a76b1e04a6b946b8ad6dd1fe050798b6d6
 
 COCOAPODS: 1.16.2

@@ -13,6 +13,11 @@ private var originalAppDelegate: UIApplicationDelegate?
 private var appDelegateSubClass: AnyClass?
 private var originalAppDelegateClass: AnyClass?
 
+// Helper to check if we're in an app extension
+private func isAppExtension() -> Bool {
+    return Bundle.main.bundlePath.hasSuffix(".appex")
+}
+
 @objc(PushedIosLib)
 public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
@@ -152,28 +157,46 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     
     /// Initializes the library
     public static func setup(
-        _ appDelegate: UIApplicationDelegate,
-        pushedLib: PushedReactNative,
+        _ appDelegate: UIApplicationDelegate?,
+        pushedLib: PushedReactNative?,
         completion: @escaping (String?) -> Void) {
         log("Start setup")
         pushedToken = nil
         tokenCompletion.append(completion)
-        proxyAppDelegate(appDelegate)
+        
+        // Only proxy AppDelegate if we're not in an app extension
+        if !isAppExtension(), let appDelegate = appDelegate {
+            proxyAppDelegate(appDelegate)
+        } else {
+            log("Skipping AppDelegate proxy - running in app extension or no delegate available")
+        }
+        
         PushedIosLib.pushedLib = pushedLib
         
         // Set UNUserNotificationCenter delegate - это критически важно для отслеживания нажатий!
         UNUserNotificationCenter.current().delegate = sharedDelegate
         log("UNUserNotificationCenter delegate set to PushedIosLib.sharedDelegate")
         
-        // Requesting notification permissions which may eventually trigger token refresh
-        let res = requestNotificationPermissions()
-        log("Res: \(res)")
+        // Request notification permissions
+        if !isAppExtension() {
+            let res = requestNotificationPermissions()
+            log("Res: \(res)")
+        } else {
+            log("Skipping notification permissions request - running in app extension")
+        }
     }
     
     /// Stops the library
-    public static func stop(_ appDelegate: UIApplicationDelegate) {
+    public static func stop(_ appDelegate: UIApplicationDelegate?) {
         log("Stop pushed")
         
+        // Skip if in app extension
+        if isAppExtension() {
+            log("Skipping stop - running in app extension")
+            return
+        }
+        
+        #if !APP_EXTENSION
         guard let appDelegate = UIApplication.shared.delegate,
               let originalClass = originalAppDelegateClass else {
             log("Cannot unproxy AppDelegate. Either AppDelegate is nil or the original class was not stored.")
@@ -185,13 +208,13 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         } else {
             log("Failed to restore the original AppDelegate class.")
         }
+        #endif
     }
     
     /// Requests notification permissions
     static func requestNotificationPermissions() -> Bool {
         var result = true
         let center = UNUserNotificationCenter.current()
-        let application = UIApplication.shared
         
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error = error {
@@ -210,7 +233,12 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             }
         }
         
-        application.registerForRemoteNotifications()
+        #if !APP_EXTENSION
+        UIApplication.shared.registerForRemoteNotifications()
+        #else
+        log("Skipping remote notifications registration - running in app extension")
+        #endif
+        
         return result
     }
     
