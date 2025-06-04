@@ -30,6 +30,26 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         return pushedToken
     }
     
+    /// Gets clientToken from UserDefaults (checks both standard and shared)
+    private static func getClientToken() -> String {
+        // First try standard UserDefaults
+        let standardToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
+        if !standardToken.isEmpty {
+            return standardToken
+        }
+        
+        // Fallback to shared UserDefaults
+        if let sharedDefaults = UserDefaults(suiteName: "group.pushed.example") {
+            let sharedToken = sharedDefaults.string(forKey: "clientToken") ?? ""
+            if !sharedToken.isEmpty {
+                log("ClientToken retrieved from shared UserDefaults: \(sharedToken.prefix(10))...")
+                return sharedToken
+            }
+        }
+        
+        return ""
+    }
+    
     /// Logs events (debug only)
     private static func log(_ event: String) {
         print(event)
@@ -46,7 +66,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static func refreshPushedToken(in object: AnyObject, apnsToken: String) {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             let permissionGranted = settings.authorizationStatus == .authorized
-            let clientToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
+            let clientToken = getClientToken()
             let parameters: [String: Any] = [
                 "clientToken": clientToken,
                 "deviceSettings": [[
@@ -57,7 +77,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                 ]]
             ]
             log("[Token] Sending parameters: \(parameters)")
-            let url = URL(string: "https://sub.pushed.dev/tokens")!
+            let url = URL(string: "https://sub.pushed.ru/tokens")!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -97,6 +117,30 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                             return
                         }
                         UserDefaults.standard.setValue(clientToken, forKey: "clientToken")
+                        
+                        // IMPORTANT: Also save to shared UserDefaults so NotificationService extension can access it
+                        if let sharedDefaults = UserDefaults(suiteName: "group.pushed.example") {
+                            sharedDefaults.setValue(clientToken, forKey: "clientToken")
+                            sharedDefaults.setValue("testValue123", forKey: "testSharing") // Test value for debugging
+                            sharedDefaults.synchronize()
+                            log("ClientToken saved to shared UserDefaults: \(clientToken.prefix(10))...")
+                        } else {
+                            log("WARNING: Could not create shared UserDefaults")
+                        }
+                        
+                        // Also try to save to shared file as fallback
+                        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.pushed.example") {
+                            let tokenFileURL = sharedURL.appendingPathComponent("clientToken.txt")
+                            do {
+                                try clientToken.write(to: tokenFileURL, atomically: true, encoding: .utf8)
+                                log("ClientToken saved to shared file: \(tokenFileURL.path)")
+                            } catch {
+                                log("ERROR: Could not save clientToken to shared file: \(error.localizedDescription)")
+                            }
+                        } else {
+                            log("WARNING: Could not access shared container")
+                        }
+                        
                         PushedIosLib.pushedToken = clientToken
                         PushedIosLib.isPushedInited(didReceivePushedClientToken: clientToken)
                     } else {
@@ -114,11 +158,11 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     
     /// Confirms a message by ID
     public static func confirmMessage(messageId: String, application: UIApplication, in object: AnyObject, userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        let clientToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
+        let clientToken = getClientToken()
         let loginString = String(format: "%@:%@", clientToken, messageId)
             .data(using: .utf8)!
             .base64EncodedString()
-        guard let url = URL(string: "https://pub.pushed.dev/v1/confirm?transportKind=Apns") else {
+        guard let url = URL(string: "https://pub.pushed.ru/v1/confirm?transportKind=Apns") else {
             log("Invalid URL for confirming message")
             redirectMessage(application, in: object, userInfo: userInfo, fetchCompletionHandler: completionHandler)
             return
@@ -399,13 +443,13 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
-        let clientToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
+        let clientToken = getClientToken()
         if clientToken.isEmpty {
             log("[Interaction] ERROR: clientToken is empty")
             return
         }
         
-        let urlString = "https://api.multipushed.dev/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
+        let urlString = "https://api.pushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
         log("[Interaction] \(interactionName): messageId=\(messageId), clientToken=\(clientToken.prefix(10))..., url=\(urlString)")
         
         guard let url = URL(string: urlString) else {
