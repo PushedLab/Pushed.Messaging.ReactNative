@@ -157,6 +157,8 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     }
     
     /// Confirms a message by ID
+    /// NOTE: This function is now disabled in the main app and only works in NotificationService extension
+    /*
     public static func confirmMessage(messageId: String, application: UIApplication, in object: AnyObject, userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         let clientToken = getClientToken()
         let loginString = String(format: "%@:%@", clientToken, messageId)
@@ -198,6 +200,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         // Perform the task
         task.resume()
     }
+    */
     
     /// Initializes the library
     public static func setup(
@@ -381,10 +384,8 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static func redirectMessage(_ application: UIApplication, in object: AnyObject, userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         log("[Native] Push received in background/foreground - processing natively only")
         log("[Native] UserInfo: \(userInfo)")
+        log("[Native] Message confirmation is handled by NotificationService extension")
         
-        // Не отправляем в JS, только нативная обработка
-        // let payload = convertObjectToJSON(userInfo) ?? ""
-        // pushedLib?.sendPushReceived(payload)
         
         log("[Native] Calling completion handler with .newData")
         completionHandler(.newData)
@@ -416,11 +417,14 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         
         if let messageId = userInfo["messageId"] as? String {
             PushedIosLib.log("Message ID: \(messageId)")
-            PushedIosLib.confirmMessage(messageId: messageId, application: application, in: self, userInfo: message, fetchCompletionHandler: completionHandler)
+            // NOTE: confirmMessage is now handled only by NotificationService extension
+            PushedIosLib.log("Message confirmation will be handled by NotificationService extension")
         } else {
             PushedIosLib.log("No message ID found.")
-            PushedIosLib.redirectMessage(application, in: self, userInfo: message, fetchCompletionHandler: completionHandler)
         }
+        
+        // Always redirect to handle the message natively only
+        PushedIosLib.redirectMessage(application, in: self, userInfo: message, fetchCompletionHandler: completionHandler)
     }
     
     /// Notifies when pushed is initialized
