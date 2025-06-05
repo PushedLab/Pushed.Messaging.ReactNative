@@ -34,10 +34,7 @@
         NSLog(@"[Extension] No messageId found for confirmation");
     }
     
-    // Modify the notification content here...
-    self.bestAttemptContent.title = [NSString stringWithFormat:@"%@ [modified]", self.bestAttemptContent.title];
-    
-    NSLog(@"[Extension] Content modified, calling contentHandler");
+    NSLog(@"[Extension] Content processed, calling contentHandler");
     self.contentHandler(self.bestAttemptContent);
 }
 
