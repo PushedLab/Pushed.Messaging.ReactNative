@@ -2,6 +2,7 @@ import Foundation
 import React
 import UIKit
 import UserNotifications
+import Security // Added for Keychain access
 
 // Typealiases for method signatures
 private typealias ApplicationApnsToken = @convention(c) (Any, Selector, UIApplication, Data) -> Void
@@ -25,29 +26,72 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedLib: PushedReactNative?
     private static var shownMessageIds: Set<String> = []
     
+    // MARK: - Keychain helpers
+
+    private static let clientTokenKey = "com.pushed.clientToken"
+
+    /// Saves token string to Keychain (replaces existing value if any)
+    private static func saveClientTokenToKeychain(_ token: String) {
+        guard let data = token.data(using: .utf8) else { return }
+
+        // Delete existing item first (if any)
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: clientTokenKey
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        // Add new item
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: clientTokenKey,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status == errSecSuccess {
+            log("ClientToken saved to Keychain")
+            print("[Pushed] ClientToken saved to Keychain: \(token.prefix(10))...")
+            let verified = loadClientTokenFromKeychain()
+            print("[Pushed] ClientToken read back from Keychain: \(verified.prefix(10))... (len: \(verified.count))")
+        } else {
+            log("ERROR: Unable to save clientToken to Keychain. OSStatus: \(status)")
+        }
+    }
+
+    /// Loads token string from Keychain, returns empty string if not found
+    private static func loadClientTokenFromKeychain() -> String {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: clientTokenKey,
+            kSecReturnData as String: kCFBooleanTrue as Any,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess, let data = result as? Data, let token = String(data: data, encoding: .utf8) else {
+            return ""
+        }
+        return token
+    }
+
     /// Returns the current client token
     public static var clientToken: String? {
         return pushedToken
     }
     
-    /// Gets clientToken from UserDefaults (checks both standard and shared)
+    /// Retrieves clientToken from Keychain
     private static func getClientToken() -> String {
-        // First try standard UserDefaults
-        let standardToken = UserDefaults.standard.string(forKey: "clientToken") ?? ""
-        if !standardToken.isEmpty {
-            return standardToken
+        let keychainToken = loadClientTokenFromKeychain()
+        if !keychainToken.isEmpty {
+            return keychainToken
         }
-        
-        // Fallback to shared UserDefaults
-        if let sharedDefaults = UserDefaults(suiteName: "group.pushed.example") {
-            let sharedToken = sharedDefaults.string(forKey: "clientToken") ?? ""
-            if !sharedToken.isEmpty {
-                log("ClientToken retrieved from shared UserDefaults: \(sharedToken.prefix(10))...")
-                return sharedToken
-            }
-        }
-        
-        return ""
+
+        // Fallback to in-memory cached value
+        return pushedToken ?? ""
     }
     
     /// Logs events (debug only)
@@ -116,30 +160,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                             log("Error with pushed token")
                             return
                         }
-                        UserDefaults.standard.setValue(clientToken, forKey: "clientToken")
-                        
-                        // IMPORTANT: Also save to shared UserDefaults so NotificationService extension can access it
-                        if let sharedDefaults = UserDefaults(suiteName: "group.pushed.example") {
-                            sharedDefaults.setValue(clientToken, forKey: "clientToken")
-                            sharedDefaults.setValue("testValue123", forKey: "testSharing") // Test value for debugging
-                            sharedDefaults.synchronize()
-                            log("ClientToken saved to shared UserDefaults: \(clientToken.prefix(10))...")
-                        } else {
-                            log("WARNING: Could not create shared UserDefaults")
-                        }
-                        
-                        // Also try to save to shared file as fallback
-                        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.pushed.example") {
-                            let tokenFileURL = sharedURL.appendingPathComponent("clientToken.txt")
-                            do {
-                                try clientToken.write(to: tokenFileURL, atomically: true, encoding: .utf8)
-                                log("ClientToken saved to shared file: \(tokenFileURL.path)")
-                            } catch {
-                                log("ERROR: Could not save clientToken to shared file: \(error.localizedDescription)")
-                            }
-                        } else {
-                            log("WARNING: Could not access shared container")
-                        }
+                        saveClientTokenToKeychain(clientToken)
                         
                         PushedIosLib.pushedToken = clientToken
                         PushedIosLib.isPushedInited(didReceivePushedClientToken: clientToken)
