@@ -5,7 +5,6 @@
       android:enabled="true"
       android:exported="true"
       android:name=".PushedBackgroundService"
-      android:foregroundServiceType="remoteMessaging"
       android:permission="TODO"
       android:stopWithTask="false" />
   </application>

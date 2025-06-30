@@ -10,7 +10,6 @@
             android:enabled="true"
             android:exported="true"
             android:name=".PushedBackgroundService"
-            android:foregroundServiceType="remoteMessaging"
             android:stopWithTask="false" />
     </application>
 </manifest>
