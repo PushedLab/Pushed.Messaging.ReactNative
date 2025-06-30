@@ -7,9 +7,13 @@ buildscript {
   def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["PushedReactNative_kotlinVersion"]
 
   repositories {
-    maven { url 'https://jitpack.io' }
     google()
     mavenCentral()
+    maven { url 'https://developer.huawei.com/repo/' }
+    maven { url 'https://jitpack.io' }
+    maven {
+        url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
+    }
   }
 
   dependencies {
@@ -88,9 +92,13 @@ android {
 }
 
 repositories {
-  maven { url 'https://jitpack.io' }
-  mavenCentral()
   google()
+  mavenCentral()
+  maven { url 'https://developer.huawei.com/repo/' }
+  maven { url 'https://jitpack.io' }
+  maven {
+      url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
+  }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
@@ -101,6 +109,6 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-android:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.github.PushedLab:Pushed.Messaging.Android.Library:1.2.0'
+  implementation 'com.github.PushedLab:Pushed.Messaging.Android.Library:1.4.4'
 }
 

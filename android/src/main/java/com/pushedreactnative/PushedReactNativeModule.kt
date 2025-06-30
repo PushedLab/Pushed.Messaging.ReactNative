@@ -12,6 +12,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import org.json.JSONException
 import org.json.JSONObject
 import ru.pushed.messaginglibrary.PushedService
+import com.facebook.react.bridge.UiThreadUtil
 
 class PushedReactNativeModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -57,34 +58,36 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun startService(serviceName: String, promise: Promise) {
-    Log.d("PushedReactNative", "Initializing PushedService with serviceName: $serviceName")
+    Log.d("PushedReactNative", "Initializing PushedService")
 
-    if (pushedService == null) {
-      try {
-        pushedService = currentActivity?.let {
-          PushedService(
-            it, serviceName, "", 0,
-            PushedBackgroundService::class.java
-          )
-        }
-        Log.i("PushedReactNative", "PushedService initialized successfully")
-      } catch (e: Exception) {
-        Log.e("PushedReactNative", "Failed to initialize PushedService", e)
-        promise.reject("InitializationError", "Failed to initialize PushedService", e)
-        return
-      }
+    val currentActivity = currentActivity
+    if (currentActivity == null) {
+      promise.reject("NO_ACTIVITY", "Current activity is null")
+      return
     }
 
-    try {
-      val token: String = pushedService!!.start { message ->
-        sendEvent(PushedEventType.PUSH_RECEIVED.name, message)
-        true
-      }.toString()
-      Log.i("PushedReactNative", "PushedService started with token: $token")
-      promise.resolve(token)
-    } catch (e: Exception) {
-      Log.e("PushedReactNative", "Failed to start PushedService", e)
-      promise.reject("StartError", "Failed to start PushedService", e)
+    UiThreadUtil.runOnUiThread {
+      // 1. Инициализируем сервис (без try/catch, чтобы видеть реальные ошибки и не скрывать их)
+      if (pushedService == null) {
+        pushedService = PushedService(
+          currentActivity,
+          PushedBackgroundService::class.java
+        )
+      }
+
+      // 2. Запускаем сервис и оборачиваем **только** получение токена в try/catch
+      try {
+        val token: String? = pushedService?.start { message ->
+          sendEvent(PushedEventType.PUSH_RECEIVED.name, message)
+          false
+        }
+
+        Log.i("PushedReactNative", "PushedService started with token: $token")
+        promise.resolve(token)
+      } catch (e: Exception) {
+        Log.e("PushedReactNative", "Failed to start PushedService", e)
+        promise.reject("SERVICE_ERROR", "Failed to start PushedService", e)
+      }
     }
   }
 

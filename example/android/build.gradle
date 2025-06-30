@@ -8,14 +8,30 @@ buildscript {
         kotlinVersion = "1.9.22"
     }
     repositories {
-      maven { url 'https://jitpack.io' }
       google()
       mavenCentral()
+      maven { url 'https://developer.huawei.com/repo/' }
+      maven { url 'https://jitpack.io' }
+      maven {
+          url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
+      }
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://developer.huawei.com/repo/' }
+        maven { url 'https://jitpack.io' }
+        maven {
+            url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
+        }
     }
 }
 
