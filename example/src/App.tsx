@@ -24,7 +24,7 @@ export default function App() {
     
     // Автоматически запускаем сервис при загрузке приложения
     console.log('Auto-starting Pushed Service');
-    startService('PushedService').then((newToken: string) => {
+    startService('',).then((newToken: string) => {
       console.log(`Service has started: ${newToken}`);
       setToken(newToken);
       setServiceActive(true);
