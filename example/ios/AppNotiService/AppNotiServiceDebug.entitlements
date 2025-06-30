@@ -8,5 +8,9 @@
 	<array>
 		<string>group.pushed.example</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)pushed.reactnative.keychain</string>
+	</array>
 </dict>
 </plist>

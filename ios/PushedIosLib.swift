@@ -28,7 +28,9 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     
     // MARK: - Keychain helpers
 
-    private static let clientTokenKey = "com.pushed.clientToken"
+    // Shared Keychain identifiers (used by extension as well)
+    private static let clientTokenAccount = "pushed_token"
+    private static let clientTokenService = "pushed_messaging_service"
 
     /// Saves token string to Keychain (replaces existing value if any)
     private static func saveClientTokenToKeychain(_ token: String) {
@@ -37,14 +39,16 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         // Delete existing item first (if any)
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: clientTokenKey
+            kSecAttrAccount as String: clientTokenAccount,
+            kSecAttrService as String: clientTokenService
         ]
         SecItemDelete(deleteQuery as CFDictionary)
 
-        // Add new item
+        // Add new item (shared across app & extension)
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: clientTokenKey,
+            kSecAttrAccount as String: clientTokenAccount,
+            kSecAttrService as String: clientTokenService,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
@@ -64,7 +68,8 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static func loadClientTokenFromKeychain() -> String {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: clientTokenKey,
+            kSecAttrAccount as String: clientTokenAccount,
+            kSecAttrService as String: clientTokenService,
             kSecReturnData as String: kCFBooleanTrue as Any,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -73,8 +78,10 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         let status = SecItemCopyMatching(query as CFDictionary, &result)
 
         guard status == errSecSuccess, let data = result as? Data, let token = String(data: data, encoding: .utf8) else {
+            print("[Pushed] No clientToken found in Keychain (status: \(status))")
             return ""
         }
+        print("[Pushed] Loaded clientToken from Keychain: \(token.prefix(10))... (len: \(token.count))")
         return token
     }
 
@@ -121,7 +128,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                 ]]
             ]
             log("[Token] Sending parameters: \(parameters)")
-            let url = URL(string: "https://sub.pushed.ru/tokens")!
+            let url = URL(string: "https://sub.multipushed.ru/tokens")!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -231,7 +238,6 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         log("Start setup")
         pushedToken = nil
         tokenCompletion.append(completion)
-        
         // Only proxy AppDelegate if we're not in an app extension
         if !isAppExtension(), let appDelegate = appDelegate {
             proxyAppDelegate(appDelegate)
@@ -474,7 +480,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
-        let urlString = "https://api.pushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
+        let urlString = "https://api.multipushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
         log("[Interaction] \(interactionName): messageId=\(messageId), clientToken=\(clientToken.prefix(10))..., url=\(urlString)")
         
         guard let url = URL(string: urlString) else {
@@ -591,6 +597,65 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
 
     public override init() {
         super.init()
+    }
+
+    // MARK: - Debug / Testing helpers
+
+    /// Сброс clientToken из Keychain (для QA/тестов)
+    @objc
+    public static func resetClientToken() {
+        log("[Reset] Attempting to delete clientToken from Keychain")
+
+        // Delete existing item first (if any)
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: clientTokenAccount,
+            kSecAttrService as String: clientTokenService
+        ]
+
+        let status = SecItemDelete(deleteQuery as CFDictionary)
+
+        // Remove shared item
+        let sharedQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: clientTokenAccount,
+            kSecAttrService as String: clientTokenService
+        ]
+        // Remove legacy item (old account without service)
+        let legacyQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: "com.pushed.clientToken"
+        ]
+
+        let statusShared = SecItemDelete(sharedQuery as CFDictionary)
+        let statusLegacy = SecItemDelete(legacyQuery as CFDictionary)
+
+        if (statusShared == errSecSuccess || statusShared == errSecItemNotFound) && (statusLegacy == errSecSuccess || statusLegacy == errSecItemNotFound) {
+            log("[Reset] clientToken removed from Keychain (sharedStatus: \(statusShared), legacyStatus: \(statusLegacy))")
+            pushedToken = nil
+            print("[Pushed] clientToken reset. sharedStatus: \(statusShared), legacyStatus: \(statusLegacy)")
+        } else {
+            log("[Reset] ERROR: Failed to delete clientToken from Keychain. sharedStatus: \(statusShared), legacyStatus: \(statusLegacy)")
+            print("[Pushed] ERROR: Unable to reset clientToken. sharedStatus: \(statusShared), legacyStatus: \(statusLegacy)")
+        }
+    }
+
+    /// Полная очистка всех GenericPassword-элементов Keychain, относящихся к приложению
+    /// Использовать ТОЛЬКО в тестовых/отладочных целях!
+    @objc
+    public static func clearAllKeychain() {
+        log("[ResetAll] Attempting to delete ALL generic password items from Keychain for this app")
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        if status == errSecSuccess {
+            log("[ResetAll] Successfully removed all generic password items (status: \(status))")
+        } else {
+            log("[ResetAll] Finished with status: \(status). errSecItemNotFound means nothing to delete.")
+        }
+        pushedToken = nil
+        print("[Pushed] clearAllKeychain finished with status: \(status)")
     }
 }
 
