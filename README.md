@@ -55,8 +55,8 @@ useEffect(() => {
 }, []);
 ```
 
-#### 3. Start the Foreground Service
-Use the `startService` function to start the foreground service that handles message reception:
+#### 3. Start the Service
+Use the `startService` function to start the service that handles message reception:
 ```javascript
 const handleStart = () => {
   console.log('Starting Pushed Service');
@@ -66,8 +66,8 @@ const handleStart = () => {
 };
 ```
 
-#### 4. Stop the Foreground Service
-Use the `stopService` function to stop the foreground service when finished:
+#### 4. Stop the Service
+Use the `stopService` function to stop the service when finished:
 ```javascript
 const handleStop = () => {
   stopService().then((message) => {
