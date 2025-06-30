@@ -75,6 +75,20 @@ const handleStop = () => {
 2. Необходимо настроить ваше приложение для работы с apns в панели управления Pushed (см. статью)[https://pushed.ru/docs/apns/]
 3. Убедитесь, что приложение имеет разрешения Push Notifications и Background Modes -> Remote Notifications
 
+#### Настройка Notification Service Extension (iOS)
+
+Для автоматического подтверждения получения сообщений (*endpoint* `/confirm`) рекомендуется добавить **Notification Service Extension** в ваше iOS-приложение. Расширение перехватывает входящий push до его показа системой и отправляет подтверждение от имени пользователя.
+
+Шаги настройки:
+
+1. Откройте проект в **Xcode** и выберите `File ▸ New ▸ Target…`, затем в списке **iOS** выберите **Notification Service Extension**.
+2. Задайте имя, например `AppNotiService`, и завершите мастер. Xcode создаст файл `NotificationService.swift`.
+3. Замените содержимое созданного файла на пример из `example/ios/AppNotiService/NotificationService.swift` или адаптируйте под свои нужды.
+4. В **Signing & Capabilities** включите **Keychain Sharing** для *основного приложения* и *расширения* и убедитесь, что в обоих целей указана одна и та же access-group. Это даст расширению доступ к `clientToken`, сохранённому библиотекой в Keychain.
+5. Убедитесь, что расширение подписывается той же командой разработчика (**Team**) и имеет bundle identifier в том же пространстве, например `com.yourapp.notification-service`.
+6. Соберите приложение. При получении push-уведомления система запустит расширение, код библиотеки отправит запрос подтверждения, после чего уведомление будет показано пользователю.
+
+> Важно: payload пуша должен содержать поле `messageId`. Без него подтверждение отправлено не будет.
 
 ### Описание методов и типов библиотеки pushed-react-native
 #### `startService(serviceName: string): Promise<string>`

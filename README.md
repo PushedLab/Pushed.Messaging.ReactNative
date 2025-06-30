@@ -83,6 +83,21 @@ const handleStop = () => {
 2. You need to configure your application to work with apns in the Pushed control panel (see the article) [https://pushed.ru/docs/apns/]
 3. Make sure that the application has the Push Notifications and Background Modes -> Remote Notifications permissions
 
+#### Setting up an iOS Notification Service Extension
+
+To automatically confirm message delivery via the `/confirm` endpoint we recommend shipping a **Notification Service Extension** with your application. The extension intercepts the push before it is presented by the system and sends a confirmation on behalf of the user.
+
+Steps:
+
+1. Open your project in **Xcode** and choose `File ▸ New ▸ Target…`. Select **Notification Service Extension** under the iOS tab.
+2. Pick a name, e.g. `AppNotiService`, and finish the wizard. Xcode will generate a `NotificationService.swift` file for you.
+3. Replace the generated file's contents with the example located at `example/ios/AppNotiService/NotificationService.swift` or adjust it to your needs.
+4. In **Signing & Capabilities** enable **Keychain Sharing** for both the **app target** and the **extension** and make sure they share the same access-group. This allows the extension to read the `clientToken` that the main app saved in the Keychain.
+5. Ensure the extension is signed with the same Apple Developer **Team** and uses a bundle identifier inside your app's namespace (e.g. `com.yourapp.notification-service`).
+6. Build and run. When a push arrives iOS will launch the extension, the confirmation request will be sent, and only then the notification will be shown to the user.
+
+> Note: the push payload must contain a `messageId` field; otherwise confirmation will be skipped.
+
 ### Description of Methods and Types in the `pushed-react-native` Library
 
 #### `startService(serviceName: string): Promise<string>`
