@@ -9,11 +9,7 @@ buildscript {
   repositories {
     google()
     mavenCentral()
-    maven { url 'https://developer.huawei.com/repo/' }
     maven { url 'https://jitpack.io' }
-    maven {
-        url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
-    }
   }
 
   dependencies {
@@ -91,13 +87,17 @@ android {
   }
 }
 
-repositories {
-  google()
-  mavenCentral()
-  maven { url 'https://developer.huawei.com/repo/' }
-  maven { url 'https://jitpack.io' }
-  maven {
-      url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
+// Add these repositories for the whole build so that applications that depend on the
+// library can resolve its transitive dependencies (e.g. RuStore & Huawei SDK).
+rootProject.allprojects {
+  repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://developer.huawei.com/repo/' }
+    maven {
+        url = uri("https://artifactory-external.vkpartner.ru/artifactory/maven")
+    }
   }
 }
 
@@ -109,6 +109,6 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-android:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.github.PushedLab:Pushed.Messaging.Android.Library:1.4.4'
+  implementation("com.github.PushedLab:Pushed.Messaging.Android.Library:applicaion-id-SNAPSHOT")
 }
 

@@ -1,5 +1,10 @@
 rootProject.name = 'pushedreactnative.example'
+
+// React Native autolinks native modules via this Gradle script
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
-include ':app', ':pushed-react-native'
+
+// Include only the application module; the pushed-react-native library will be added automatically
+include ':app'
+
+// AGP 8 requires the new Gradle plugin composite build
 includeBuild('../node_modules/@react-native/gradle-plugin')
-project(':pushed-react-native').projectDir = new File(rootProject.projectDir, '../../android')
