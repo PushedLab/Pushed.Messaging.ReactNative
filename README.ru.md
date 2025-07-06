@@ -91,10 +91,12 @@ const handleStop = () => {
 > Важно: payload пуша должен содержать поле `messageId`. Без него подтверждение отправлено не будет.
 
 ### Описание методов и типов библиотеки pushed-react-native
-#### `startService(serviceName: string): Promise<string>`
+#### `startService(serviceName: string, applicationId?: string): Promise<string>`
 Эта функция запускает службу push-уведомлений.
 - **Параметры:**
  - `serviceName`: `строка`, представляющая имя запускаемой службы.
+ - `applicationId` *(необязательный)*: `строка` — ваш идентификатор приложения `applicationId` в Pushed. Если параметр указан, токен клиента будет сразу инициализирован для этого приложения.  
+   Также можно вызвать `setApplicationId('YOUR_APP_ID')` до запуска `startService`.
 - **Возвращаемое значение:**
  - `Promise<string>`, который резолвится токеном устройства, который понадобится при отправке пуша. См. пример.
 #### `stopService(): Promise<string>`
