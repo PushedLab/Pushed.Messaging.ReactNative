@@ -17,8 +17,8 @@ const PushedReactNative = NativeModules.PushedReactNative
       }
     );
 
-export function startService(serviceName: string): Promise<string> {
-  return PushedReactNative.startService(serviceName);
+export function startService(serviceName: string, applicationId: string = ''): Promise<string> {
+  return PushedReactNative.startService(serviceName, applicationId);
 }
 
 export function stopService(): Promise<string> {
@@ -40,4 +40,9 @@ export class Push {
   constructor(data: { [key: string]: any }) {
     Object.assign(this, data);
   }
+}
+
+// Позволяет задать applicationId до запуска сервиса
+export function setApplicationId(applicationId: string): void {
+  PushedReactNative.setApplicationId(applicationId);
 }

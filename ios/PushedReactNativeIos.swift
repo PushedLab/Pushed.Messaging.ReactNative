@@ -9,8 +9,9 @@ private func isAppExtension() -> Bool {
 
 @objc(PushedReactNative)
 public class PushedReactNative: RCTEventEmitter {
-  @objc(startService:withResolver:withRejecter:)
+  @objc(startService:applicationId:withResolver:withRejecter:)
   func startService(serviceName: String,
+                    applicationId: String?,
                     resolve: @escaping RCTPromiseResolveBlock,
                     reject: @escaping RCTPromiseRejectBlock) {
     DispatchQueue.main.async {
@@ -22,7 +23,7 @@ public class PushedReactNative: RCTEventEmitter {
         }
         #endif
         
-        PushedIosLib.setup(appDelegate, pushedLib: self) { token in
+        PushedIosLib.setup(appDelegate, pushedLib: self, applicationId: applicationId) { token in
             if let token = token {
                 resolve(token);
             } else {
@@ -70,6 +71,14 @@ public class PushedReactNative: RCTEventEmitter {
 
   override static public func requiresMainQueueSetup() -> Bool {
       return true
+  }
+
+  // MARK: - Application ID
+
+  /// Allows JS layer to set/update the applicationId at runtime prior to token creation
+  @objc(setApplicationId:)
+  func setApplicationId(applicationId: String) {
+      PushedIosLib.setApplicationId(applicationId)
   }
 }
 
