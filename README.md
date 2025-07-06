@@ -100,11 +100,13 @@ Steps:
 
 ### Description of Methods and Types in the `pushed-react-native` Library
 
-#### `startService(serviceName: string): Promise<string>`
+#### `startService(serviceName: string, applicationId?: string): Promise<string>`
 This function starts the push notification service.
 
 - **Parameters:**
   - `serviceName`: A `string` representing the name of the service to start.
+  - `applicationId` *(optional)*: A `string` containing your Pushed `applicationId`. If supplied, the library will immediately initialise the client token for this application.  
+    Alternatively, you can call `setApplicationId('YOUR_APP_ID')` before invoking `startService`.
 
 - **Returns:**
   - A `Promise<string>` that resolves with the device token needed for sending push notifications. See the example.
