@@ -24,7 +24,21 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
+    /// Optional application identifier supplied by host app (sent together with token request)
+    private static var applicationId: String?
     private static var shownMessageIds: Set<String> = []
+    
+    // MARK: - WebSocket support
+
+    /// WebSocket client instance (iOS 13+ only)
+    @available(iOS 13.0, *)
+    private static var webSocketClient: PushedWebSocketClient?
+
+    /// Callback for WebSocket status changes
+    public static var onWebSocketStatusChange: ((PushedServiceStatus) -> Void)?
+
+    /// Callback invoked when a WebSocket message is received. Return `true` if the message was handled by the caller and no default notification should be shown.
+    public static var onWebSocketMessageReceived: ((String) -> Bool)?
     
     // MARK: - Keychain helpers
 
@@ -118,7 +132,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             let permissionGranted = settings.authorizationStatus == .authorized
             let clientToken = getClientToken()
-            let parameters: [String: Any] = [
+            var parameters: [String: Any] = [
                 "clientToken": clientToken,
                 "deviceSettings": [[
                     "deviceToken": apnsToken,
@@ -127,8 +141,15 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                     "operatingSystem": "ios"
                 ]]
             ]
+
+            log("[Token] Current applicationId: \(applicationId ?? "<nil>")")
+            // Append applicationId if it was provided by the host application
+            if let appId = applicationId, !appId.isEmpty {
+                parameters["applicationId"] = appId
+            }
+
             log("[Token] Sending parameters: \(parameters)")
-            let url = URL(string: "https://sub.multipushed.ru/tokens")!
+            let url = URL(string: "https://sub.multipushed.ru/v2/tokens")!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -163,14 +184,33 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                         } else {
                             log("Unable to convert response data to String")
                         }
-                        guard let clientToken = jsonResponse["token"] as? String else {
-                            log("Error with pushed token")
+                        // Support both legacy {"token": "..."} format and new {"model": {"clientToken": "..."}}
+                        var extractedToken: String?
+                        if let token = jsonResponse["token"] as? String {
+                            extractedToken = token
+                        } else if let model = jsonResponse["model"] as? [String: Any], let token = model["clientToken"] as? String {
+                            extractedToken = token
+                        }
+
+                        guard let clientToken = extractedToken else {
+                            log("Error: Unable to find clientToken in server response: \(jsonResponse)")
                             return
                         }
                         saveClientTokenToKeychain(clientToken)
                         
                         PushedIosLib.pushedToken = clientToken
                         PushedIosLib.isPushedInited(didReceivePushedClientToken: clientToken)
+
+                        // Auto-start WebSocket connection if it is enabled in settings
+                        if UserDefaults.standard.bool(forKey: "pushedMessaging.webSocketEnabled") {
+                            DispatchQueue.main.async {
+                                if #available(iOS 13.0, *) {
+                                    startWebSocketConnection()
+                                } else {
+                                    log("WebSocket requires iOS 13.0 or later")
+                                }
+                            }
+                        }
                     } else {
                         log("Data may be corrupted or in wrong format")
                         throw URLError(.badServerResponse)
@@ -234,10 +274,12 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     public static func setup(
         _ appDelegate: UIApplicationDelegate?,
         pushedLib: PushedReactNative?,
+        applicationId: String? = nil,
         completion: @escaping (String?) -> Void) {
-        log("Start setup")
+        log("Start setup") 
         pushedToken = nil
-        tokenCompletion.append(completion)
+        tokenCompletion.append(completion) 
+        PushedIosLib.resetClientToken()
         // Only proxy AppDelegate if we're not in an app extension
         if !isAppExtension(), let appDelegate = appDelegate {
             proxyAppDelegate(appDelegate)
@@ -246,7 +288,11 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         }
         
         PushedIosLib.pushedLib = pushedLib
-        
+        // Persist the provided applicationId (if any)
+        if let appId = applicationId {
+            PushedIosLib.applicationId = appId
+            log("applicationId provided in setup: \(appId)")
+        }
         // Set UNUserNotificationCenter delegate - это критически важно для отслеживания нажатий!
         UNUserNotificationCenter.current().delegate = sharedDelegate
         log("UNUserNotificationCenter delegate set to PushedIosLib.sharedDelegate")
@@ -257,6 +303,10 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             log("Res: \(res)")
         } else {
             log("Skipping notification permissions request - running in app extension")
+        }
+
+        if UserDefaults.standard.object(forKey: "pushedMessaging.webSocketEnabled") == nil {
+            UserDefaults.standard.set(true, forKey: "pushedMessaging.webSocketEnabled")
         }
     }
     
@@ -283,6 +333,11 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             log("Failed to restore the original AppDelegate class.")
         }
         #endif
+
+        // Stop WebSocket (if running)
+        if #available(iOS 13.0, *) {
+            stopWebSocketConnection()
+        }
     }
     
     /// Requests notification permissions
@@ -656,6 +711,108 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         }
         pushedToken = nil
         print("[Pushed] clearAllKeychain finished with status: \(status)")
+    }
+
+    // MARK: - WebSocket control helpers
+
+    /// Start a WebSocket connection using the currently stored client token.
+    @available(iOS 13.0, *)
+    public static func startWebSocketConnection() {
+        log("[WS] startWebSocketConnection called (webSocketClient == nil: \(webSocketClient == nil))")
+
+        guard let token = clientToken else {
+            log("[WS] Cannot start WebSocket: clientToken is nil")
+            return
+        }
+
+        // If a client is already running – restart it to apply fresh token
+        if webSocketClient != nil {
+            log("[WS] WebSocket client already exists – restarting")
+            stopWebSocketConnection()
+        }
+
+        log("[WS] Creating PushedWebSocketClient with token prefix: \(token.prefix(8))… (len: \(token.count))")
+        let client = PushedWebSocketClient(token: token)
+        webSocketClient = client
+
+        // Hook callbacks
+        client.onStatusChange = { status in
+            log("[WS] WebSocket status changed callback: \(status.rawValue)")
+            onWebSocketStatusChange?(status)
+        }
+
+        client.onMessageReceived = { message -> Bool in
+            log("WebSocket message received (len: \(message.count))")
+            let handled = onWebSocketMessageReceived?(message) ?? false
+
+            if !handled {
+                // Forward to React-Native layer by default
+                DispatchQueue.main.async {
+                    pushedLib?.sendPushReceived(message)
+                }
+            }
+            return handled
+        }
+
+        log("[WS] Calling client.connect()…")
+        client.connect()
+    }
+
+    /// Gracefully stop an active WebSocket connection
+    @available(iOS 13.0, *)
+    public static func stopWebSocketConnection() {
+        guard let client = webSocketClient else { return }
+        log("Stopping WebSocket connection")
+        client.disconnect()
+        webSocketClient = nil
+    }
+
+    /// Convenience method to restart the WebSocket connection
+    @available(iOS 13.0, *)
+    public static func restartWebSocketConnection() {
+        log("Restarting WebSocket connection")
+        stopWebSocketConnection()
+        startWebSocketConnection()
+    }
+
+    /// Enable WebSocket functionality. This flags the preference in UserDefaults and starts the connection if a token is already available.
+    public static func enableWebSocket() {
+        log("[WS] enableWebSocket called (iOS >=13: \(ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0))))")
+        log("[WS] Current clientToken is nil: \(clientToken == nil)")
+        UserDefaults.standard.set(true, forKey: "pushedMessaging.webSocketEnabled")
+        if clientToken != nil {
+            if #available(iOS 13.0, *) {
+                log("[WS] Token already available – starting WebSocket immediately")
+                startWebSocketConnection()
+            } else {
+                log("WebSocket requires iOS 13.0 or later")
+            }
+        } else {
+            log("[WS] Token not yet available – WebSocket will auto-start after token retrieval")
+        }
+    }
+
+    /// Disable WebSocket functionality and tear down any running connection.
+    public static func disableWebSocket() {
+        log("Disabling WebSocket support")
+        UserDefaults.standard.set(false, forKey: "pushedMessaging.webSocketEnabled")
+        if #available(iOS 13.0, *) {
+            stopWebSocketConnection()
+        }
+    }
+
+    /// Manual health-check helper – useful for debugging.
+    @available(iOS 13.0, *)
+    public static func checkWebSocketHealth() {
+        webSocketClient?.checkConnectionState()
+    }
+
+    /// Updates/sets the application identifier that will be sent together with token creation requests.
+    /// Can be called at any moment before the token request is executed.
+    @objc
+    public static func setApplicationId(_ id: String) {
+        applicationId = id
+        log("applicationId set via setApplicationId(_:): \(id)")
     }
 }
 

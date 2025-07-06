@@ -57,7 +57,7 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
   private var pushedService: PushedService? = null
 
   @ReactMethod
-  fun startService(serviceName: String, promise: Promise) {
+  fun startService(serviceName: String, applicationId: String?, promise: Promise) {
     Log.d("PushedReactNative", "Initializing PushedService")
 
     val currentActivity = currentActivity
@@ -71,7 +71,8 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
       if (pushedService == null) {
         pushedService = PushedService(
           currentActivity,
-          PushedBackgroundService::class.java
+          PushedBackgroundService::class.java, 
+          applicationId = applicationId
         )
       }
 
@@ -123,6 +124,12 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun removeListeners(count: Int) {
     Log.d("PushedReactNative", "Listeners removed, count: $count")
+  }
+
+  // Optional: accept applicationId from JS for future use (currently ignored on Android)
+  @ReactMethod
+  fun setApplicationId(applicationId: String) {
+    Log.d("PushedReactNative", "Received applicationId: $applicationId (currently unused on Android)")
   }
 
   // Helper function to convert JSONObject to WritableMap
