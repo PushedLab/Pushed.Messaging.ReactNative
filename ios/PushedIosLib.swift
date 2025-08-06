@@ -279,7 +279,6 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         log("Start setup") 
         pushedToken = nil
         tokenCompletion.append(completion) 
-        PushedIosLib.resetClientToken()
         // Only proxy AppDelegate if we're not in an app extension
         if !isAppExtension(), let appDelegate = appDelegate {
             proxyAppDelegate(appDelegate)
