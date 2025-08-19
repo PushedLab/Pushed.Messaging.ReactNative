@@ -4,6 +4,81 @@ import UIKit
 import UserNotifications
 import Security // Added for Keychain access
 
+// MARK: - NotificationCenter Delegate Proxy (deduplication helper)
+
+private class NotificationCenterProxy: NSObject, UNUserNotificationCenterDelegate {
+    weak var original: UNUserNotificationCenterDelegate?
+
+    init(original: UNUserNotificationCenterDelegate?) {
+        self.original = original
+    }
+
+    // Suppress APNs banner if message already processed via WebSocket
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let userInfo = notification.request.content.userInfo
+        
+        // Step 1: Check for messageId
+        guard let messageId = userInfo["messageId"] as? String, !messageId.isEmpty else {
+            PushedIosLib.log("[Proxy] Notification without messageId, showing without deduplication.")
+            show(notification: notification, center: center, completionHandler: completionHandler)
+            return
+        }
+
+        // Step 2: Deduplication Check
+        if PushedIosLib.isMessageProcessed(messageId) {
+            PushedIosLib.log("[Proxy] Duplicate messageId \(messageId). Suppressing notification.")
+            completionHandler([])
+            return
+        }
+
+        // Step 3: New Message - Process, Show, and Report
+        PushedIosLib.log("[Proxy] New messageId \(messageId). Processing and showing.")
+        PushedIosLib.markMessageProcessed(messageId)
+        PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Send SHOW event
+        
+        // Show the notification UI
+        show(notification: notification, center: center, completionHandler: completionHandler)
+    }
+    
+    // Helper to avoid duplicating the show logic
+    private func show(notification: UNNotification, center: UNUserNotificationCenter, completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Always present from proxy to avoid any suppression by other delegates
+        PushedIosLib.log("[Proxy] Presenting notification in foreground")
+        if #available(iOS 14.0, *) {
+            completionHandler([.banner, .list, .badge, .sound])
+        } else {
+            completionHandler([.alert, .badge, .sound])
+        }
+    }
+
+    // Forward didReceive and send CLICK confirm
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        PushedIosLib.confirmMessage(response)
+
+        if let orig = original, orig.responds(to: #selector(userNotificationCenter(_:didReceive:withCompletionHandler:))) {
+            orig.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler)
+        } else {
+            completionHandler()
+        }
+    }
+}
+
+extension PushedIosLib {
+    fileprivate static var notificationCenterProxy: NotificationCenterProxy?
+}
+
+// Expose a simple entry point for CLICK confirm used by NotificationCenterProxy
+public extension PushedIosLib {
+    static func confirmMessage(_ response: UNNotificationResponse) {
+        let userInfo = response.notification.request.content.userInfo
+        // Reuse existing click flow: send CLICK interaction and open URL if present
+        if let messageId = userInfo["messageId"] as? String {
+            // Send CLICK event
+            sendInteractionEvent(2, userInfo: userInfo)
+        }
+    }
+}
+
 // Typealiases for method signatures
 private typealias ApplicationApnsToken = @convention(c) (Any, Selector, UIApplication, Data) -> Void
 private typealias IsPushedInited = @convention(c) (Any, Selector, String) -> Void
@@ -19,14 +94,69 @@ private func isAppExtension() -> Bool {
     return Bundle.main.bundlePath.hasSuffix(".appex")
 }
 
+private let kPushedAppGroupIdentifier = "group.ru.pushed.messaging"
+
 @objc(PushedIosLib)
 public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
+    
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
+    private static let sdkVersion = "iOS Native 1.0.1"
+    private static let operatingSystem = "iOS \(UIDevice.current.systemVersion)"
+    
+    // Services
+//    private static var apnsService: APNSService?
+//    private static var appDelegateProxy: AppDelegateProxy?
+    @available(iOS 13.0, *)
+//    private static var pushedService: PushedService?
     /// Optional application identifier supplied by host app (sent together with token request)
     private static var applicationId: String?
-    private static var shownMessageIds: Set<String> = []
+    private static var processedMessageIds: Set<String> = []
+    private static let processedMessageIdsKey = "pushedMessaging.processedMessageIds"
+    private static let maxStoredMessageIds = 1000
+
+    private static func loadProcessedIds() -> Set<String> {
+        let arr = UserDefaults.standard.stringArray(forKey: processedMessageIdsKey) ?? []
+        return Set(arr)
+    }
+
+    private static func saveProcessedIds(_ ids: Set<String>) {
+        var idsArray = Array(ids)
+        // Keep only the most recent maxStoredMessageIds
+        if idsArray.count > maxStoredMessageIds {
+            idsArray = Array(idsArray.suffix(maxStoredMessageIds))
+        }
+        UserDefaults.standard.set(idsArray, forKey: processedMessageIdsKey)
+    }
+
+    public static func isMessageProcessed(_ messageId: String) -> Bool {
+        if messageId.isEmpty { return false }
+        // Merge in any persisted ids
+        if processedMessageIds.isEmpty {
+            processedMessageIds = loadProcessedIds()
+        }
+        let already = processedMessageIds.contains(messageId)
+        log("[Dedup] Check processed for messageId: \(messageId) → \(already)")
+        return already
+    }
+
+    public static func markMessageProcessed(_ messageId: String) {
+        guard !messageId.isEmpty else { return }
+        if processedMessageIds.isEmpty {
+            processedMessageIds = loadProcessedIds()
+        }
+        processedMessageIds.insert(messageId)
+        saveProcessedIds(processedMessageIds)
+        log("[Dedup] Stored messageId as processed: \(messageId). Total stored: \(processedMessageIds.count)")
+    }
+
+    public static func cancelLocalNotification(withMessageId messageId: String) {
+        guard !messageId.isEmpty else { return }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [messageId])
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [messageId])
+        log("[Dedup] Cancelled local notifications for messageId: \(messageId)")
+    }
     
     // MARK: - WebSocket support
 
@@ -116,7 +246,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     }
     
     /// Logs events (debug only)
-    private static func log(_ event: String) {
+    public static func log(_ event: String) {
         print(event)
         let log = UserDefaults.standard.string(forKey: "pushedLog") ?? ""
         UserDefaults.standard.set(log + "\(Date()): \(event)\n", forKey: "pushedLog")
@@ -125,6 +255,26 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     /// Returns the service log (debug only)
     public static func getLog() -> String {
         return UserDefaults.standard.string(forKey: "pushedLog") ?? ""
+    }
+
+    /// Mark any delivered APNs notifications as processed on startup to avoid WS duplicates after cold start
+    private static func markDeliveredNotificationsAsProcessed() {
+        let center = UNUserNotificationCenter.current()
+        center.getDeliveredNotifications { notifications in
+            var newlyProcessed: [String] = []
+            for notification in notifications {
+                let userInfo = notification.request.content.userInfo
+                if let messageId = userInfo["messageId"] as? String, !messageId.isEmpty {
+                    if !isMessageProcessed(messageId) {
+                        markMessageProcessed(messageId)
+                        newlyProcessed.append(messageId)
+                    }
+                }
+            }
+            if !newlyProcessed.isEmpty {
+                log("[Dedup] Marked delivered notifications as processed on startup: \(newlyProcessed)")
+            }
+        }
     }
     
     /// Refreshes the pushed token
@@ -201,14 +351,20 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                         PushedIosLib.pushedToken = clientToken
                         PushedIosLib.isPushedInited(didReceivePushedClientToken: clientToken)
 
-                        // Auto-start WebSocket connection if it is enabled in settings
-                        if UserDefaults.standard.bool(forKey: "pushedMessaging.webSocketEnabled") {
-                            DispatchQueue.main.async {
-                                if #available(iOS 13.0, *) {
+                        // Always start WebSocket after token retrieval (iOS 13+) to avoid conflicts with other libs
+                        DispatchQueue.main.async {
+                            if #available(iOS 13.0, *) {
+                                let appState = UIApplication.shared.applicationState
+                                // On cold start (inactive), APNs needs time to be processed first.
+                                let delay: TimeInterval = (appState == .active) ? 0.1 : 2.0
+                                log("[WS] App state is \(appState.rawValue). Delaying WebSocket start by \(delay)s to prevent cold start race condition.")
+
+                                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                                    log("[WS] Starting WebSocket connection after delay.")
                                     startWebSocketConnection()
-                                } else {
-                                    log("WebSocket requires iOS 13.0 or later")
                                 }
+                            } else {
+                                log("WebSocket requires iOS 13.0 or later")
                             }
                         }
                     } else {
@@ -278,7 +434,8 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         completion: @escaping (String?) -> Void) {
         log("Start setup") 
         pushedToken = nil
-        tokenCompletion.append(completion) 
+        tokenCompletion.append(completion)  
+        // PushedIosLib.resetClientToken()
         // Only proxy AppDelegate if we're not in an app extension
         if !isAppExtension(), let appDelegate = appDelegate {
             proxyAppDelegate(appDelegate)
@@ -293,8 +450,20 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             log("applicationId provided in setup: \(appId)")
         }
         // Set UNUserNotificationCenter delegate - это критически важно для отслеживания нажатий!
-        UNUserNotificationCenter.current().delegate = sharedDelegate
-        log("UNUserNotificationCenter delegate set to PushedIosLib.sharedDelegate")
+        // UNUserNotificationCenter.current().delegate = sharedDelegate
+        // log("UNUserNotificationCenter delegate set to PushedIosLib.sharedDelegate")
+
+        // Install NotificationCenter proxy for deduplication (keeps existing delegate functionality)
+        if notificationCenterProxy == nil {
+            let center = UNUserNotificationCenter.current()
+            // Important: We are proxying the *original* delegate, not replacing it entirely
+            notificationCenterProxy = NotificationCenterProxy(original: center.delegate)
+            center.delegate = notificationCenterProxy
+            log("NotificationCenter proxy installed for deduplication")
+        }
+
+        // Sync processed set with delivered APNs notifications to avoid WS duplicate on cold start
+        markDeliveredNotificationsAsProcessed()
         
         // Request notification permissions
         if !isAppExtension() {
@@ -304,8 +473,19 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             log("Skipping notification permissions request - running in app extension")
         }
 
-        if UserDefaults.standard.object(forKey: "pushedMessaging.webSocketEnabled") == nil {
-            UserDefaults.standard.set(true, forKey: "pushedMessaging.webSocketEnabled")
+        // Force-enable WS flag to avoid cross-library pollution when sharing the same bundle id
+        UserDefaults.standard.set(true, forKey: "pushedMessaging.webSocketEnabled")
+        let wsEnabledAtSetup = UserDefaults.standard.bool(forKey: "pushedMessaging.webSocketEnabled")
+        let isAtLeastIOS13 = ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0))
+        log("[WS] webSocketEnabled at setup: \(wsEnabledAtSetup), iOS >=13: \(isAtLeastIOS13)")
+
+        // Load persisted dedup set at startup
+        processedMessageIds = loadProcessedIds()
+        // Clean up if too large
+        if processedMessageIds.count > maxStoredMessageIds {
+            log("[Dedup] Cleaning up processed IDs - was \(processedMessageIds.count), limiting to \(maxStoredMessageIds)")
+            processedMessageIds = Set(Array(processedMessageIds).suffix(maxStoredMessageIds))
+            saveProcessedIds(processedMessageIds)
         }
     }
     
@@ -498,6 +678,17 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         
         if let messageId = userInfo["messageId"] as? String {
             PushedIosLib.log("Message ID: \(messageId)")
+            // Check if already shown
+            if !PushedIosLib.isMessageProcessed(messageId) {
+                // Mark as processed for dedup but DON'T send SHOW here
+                // SHOW will be sent by willPresent when notification is displayed
+                PushedIosLib.markMessageProcessed(messageId)
+                PushedIosLib.log("[Dedup] Marked as processed for dedup: \(messageId)")
+            } else {
+                PushedIosLib.log("[Dedup] Message already processed via WebSocket: \(messageId)")
+            }
+            // Cancel any pending/delivered local notification for the same messageId (scheduled by WS)
+            PushedIosLib.cancelLocalNotification(withMessageId: messageId)
             // NOTE: confirmMessage is now handled only by NotificationService extension
             PushedIosLib.log("Message confirmation will be handled by NotificationService extension")
         } else {
@@ -519,7 +710,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     }
 
     /// Sends interaction event to the server
-    private static func sendInteractionEvent(_ interaction: Int, userInfo: [AnyHashable: Any]) {
+    public static func sendInteractionEvent(_ interaction: Int, userInfo: [AnyHashable: Any]) {
         let interactionName = interaction == 1 ? "SHOW" : (interaction == 2 ? "CLICK" : "UNKNOWN(\(interaction))")
         log("[Interaction] Starting \(interactionName) event")
         
@@ -593,17 +784,37 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
 
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let userInfo = notification.request.content.userInfo
-        PushedIosLib.log("[UNDelegate] willPresent called with userInfo: \(userInfo)")
+        let isRemoteNotification = notification.request.trigger is UNPushNotificationTrigger
+        
+        PushedIosLib.log("[UNDelegate] willPresent called. IsRemote: \(isRemoteNotification), userInfo: \(userInfo)")
         
         if let messageId = userInfo["messageId"] as? String {
             PushedIosLib.log("[UNDelegate] Found messageId: \(messageId)")
-            if !Self.shownMessageIds.contains(messageId) {
-                PushedIosLib.log("[UNDelegate] Sending SHOW event for messageId: \(messageId)")
-                PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
-                Self.shownMessageIds.insert(messageId)
-                PushedIosLib.log("[UNDelegate] SHOW event sent and messageId added to shown set")
+            
+            if isRemoteNotification {
+                // This is APNs notification
+                if PushedIosLib.isMessageProcessed(messageId) {
+                    PushedIosLib.log("[UNDelegate][Dedup] APNs message already processed via WebSocket. Suppressing for \(messageId)")
+                    // Cancel any pending local notification with same ID
+                    PushedIosLib.cancelLocalNotification(withMessageId: messageId)
+                    completionHandler([])
+                    return
+                }
+                // Mark as processed and send SHOW event
+                PushedIosLib.markMessageProcessed(messageId)
+                PushedIosLib.cancelLocalNotification(withMessageId: messageId)
+                PushedIosLib.log("[UNDelegate] Showing APNs notification and sending SHOW event for \(messageId)")
+                PushedIosLib.sendInteractionEvent(1, userInfo: userInfo)
             } else {
-                PushedIosLib.log("[UNDelegate] SHOW event already sent for messageId: \(messageId)")
+                // This is local WebSocket notification
+                if PushedIosLib.isMessageProcessed(messageId) {
+                    PushedIosLib.log("[UNDelegate][Dedup] WebSocket message already processed via APNs. Suppressing for \(messageId)")
+                    completionHandler([])
+                    return
+                }
+                // Send SHOW event for WebSocket notification when it's actually presented
+                PushedIosLib.sendInteractionEvent(1, userInfo: userInfo)
+                PushedIosLib.log("[UNDelegate] Showing WebSocket notification and sending SHOW event for \(messageId)")
             }
         } else {
             PushedIosLib.log("[UNDelegate] WARNING: No messageId found in userInfo")
@@ -622,11 +833,11 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             PushedIosLib.log("[UNDelegate] Found messageId: \(messageId)")
             
             // Отправляем SHOW если еще не отправляли
-            if !Self.shownMessageIds.contains(messageId) {
+            if !PushedIosLib.isMessageProcessed(messageId) {
                 PushedIosLib.log("[UNDelegate] Sending SHOW event for messageId: \(messageId) (from didReceive)")
                 PushedIosLib.sendInteractionEvent(1, userInfo: userInfo) // Show
-                Self.shownMessageIds.insert(messageId)
-                PushedIosLib.log("[UNDelegate] SHOW event sent and messageId added to shown set")
+                PushedIosLib.markMessageProcessed(messageId)
+                PushedIosLib.log("[UNDelegate] SHOW event sent and messageId marked as processed")
             } else {
                 PushedIosLib.log("[UNDelegate] SHOW event already sent for messageId: \(messageId)")
             }

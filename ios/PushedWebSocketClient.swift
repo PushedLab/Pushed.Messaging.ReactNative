@@ -75,6 +75,7 @@ public class PushedWebSocketClient: NSObject {
         config.timeoutIntervalForResource = 300 // Increased for long-lived connections
         config.waitsForConnectivity = true
         urlSession = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        Self.addLog("URLSession configured. RequestTimeout=\(config.timeoutIntervalForRequest), ResourceTimeout=\(config.timeoutIntervalForResource), waitsForConnectivity=\(config.waitsForConnectivity)")
     }
     
     /// Prepare WebSocket for background mode
@@ -137,11 +138,21 @@ public class PushedWebSocketClient: NSObject {
             return
         }
         
+        // If there is an existing task, cancel it first to ensure clean state
+        if let existing = webSocketTask {
+            Self.addLog("Found existing WebSocket task with state: \(existing.state.rawValue). Cancelling before reconnect…")
+        }
         disconnect()
         
         Self.addLog("Connecting to WebSocket: \(url.absoluteString)")
         webSocketTask = urlSession?.webSocketTask(with: url)
-        webSocketTask?.resume()
+        if let task = webSocketTask {
+            Self.addLog("WebSocket task created. Initial state: \(task.state.rawValue) (0=suspended,1=running,2=canceling,3=completed)")
+            task.resume()
+            Self.addLog("Called resume() on WebSocket task. New state: \(task.state.rawValue)")
+        } else {
+            Self.addLog("❌ Failed to create URLSessionWebSocketTask (urlSession is nil: \(urlSession == nil))")
+        }
         
         status = .connecting
         onStatusChange?(.connecting)
@@ -283,6 +294,7 @@ public class PushedWebSocketClient: NSObject {
     }
     
     private func receiveMessage() {
+        Self.addLog("Entering receive loop…")
         webSocketTask?.receive { [weak self] result in
             switch result {
             case .success(let message):
@@ -473,9 +485,21 @@ public class PushedWebSocketClient: NSObject {
                 
                 // Add custom data (important for handling clicks)
                 content.userInfo = messageData
+
+                // Use messageId as request identifier when available to deduplicate with APNs
+                let identifier: String
+                if let mid = messageData["messageId"] as? String, !mid.isEmpty {
+                    // If already shown (via APNs), skip scheduling
+                    if PushedIosLib.isMessageProcessed(mid) {
+                        Self.addLog("[Dedup] Skipping local WS notification – already processed via APNs for messageId: \(mid)")
+                        return
+                    }
+                    identifier = mid
+                } else {
+                    identifier = UUID().uuidString
+                }
                 
                 // Create request
-                let identifier = UUID().uuidString
                 let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
                 
                 // Schedule notification
@@ -483,7 +507,7 @@ public class PushedWebSocketClient: NSObject {
                     if let error = error {
                         Self.addLog("Failed to schedule notification: \(error.localizedDescription)")
                     } else {
-                        Self.addLog("Background notification scheduled")
+                        Self.addLog("Background notification scheduled with identifier: \(identifier)")
                     }
                 }
             }
