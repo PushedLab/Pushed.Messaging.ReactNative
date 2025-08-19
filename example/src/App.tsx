@@ -12,7 +12,7 @@ import {
 import {
   startService,
 } from '@PushedLab/pushed-react-native';
-import { initNotifications } from './Notifee';
+// import { initNotifications } from './Notifee';
 
 export default function App() {
   const [token, setToken] = useState('');
@@ -20,7 +20,7 @@ export default function App() {
   const [serviceActive, setServiceActive] = useState(false);
 
   useEffect(() => {
-    initNotifications();
+    // initNotifications();
     
     // Автоматически запускаем сервис при загрузке приложения
     console.log('Auto-starting Pushed Service');
