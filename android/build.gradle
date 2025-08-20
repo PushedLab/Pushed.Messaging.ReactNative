@@ -109,6 +109,6 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-android:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation("com.github.PushedLab:Pushed.Messaging.Android.Library:applicaion-id-SNAPSHOT")
+  implementation("com.github.PushedLab:Pushed.Messaging.Android.Library:1.4.6.2")
 }
 
