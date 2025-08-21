@@ -420,6 +420,12 @@ public class PushedWebSocketClient: NSObject {
     }
     
     private func showBackgroundNotification(_ messageData: [String: Any]) {
+        // If app is in background, don't show notification
+        if UIApplication.shared.applicationState == .background {
+            Self.addLog("App is in background, skipping local notification via WebSocket.")
+            return
+        }
+        
         DispatchQueue.main.async {
             // Check if we have notification permissions
             UNUserNotificationCenter.current().getNotificationSettings { settings in
