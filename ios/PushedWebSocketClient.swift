@@ -386,6 +386,10 @@ public class PushedWebSocketClient: NSObject {
         
         Self.addLog("Processing WebSocket message with ID: \(messageId)")
         
+        // Mark as processed immediately for deduplication against APNs
+        PushedIosLib.markMessageProcessed(messageId)
+        Self.addLog("[Dedup] Marked WebSocket message as processed: \(messageId)")
+        
         // Skip if this is the same as last message
         if messageId == lastMessageId {
             Self.addLog("Duplicate message ignored: \(messageId)")

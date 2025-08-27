@@ -3,6 +3,7 @@ import React
 import UIKit
 import UserNotifications
 import Security // Added for Keychain access
+import DeviceKit
 
 // MARK: - NotificationCenter Delegate Proxy (deduplication helper)
 
@@ -293,7 +294,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                 "sdkVersion": sdkVersion,
                 "operatingSystem": operatingSystem,
                 "displayPushNotificationsPermission": permissionGranted,
-                "mobileDeviceName": UIDevice.current.name
+                "mobileDeviceName": Device.current.description
             ]
 
             log("[Token] Current applicationId: \(applicationId ?? "<nil>")")
@@ -960,9 +961,13 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             let handled = onWebSocketMessageReceived?(message) ?? false
 
             if !handled {
-                // Forward to React-Native layer by default
-                DispatchQueue.main.async {
-                    pushedLib?.sendPushReceived(message)
+                if UIApplication.shared.applicationState != .background {
+                    // Forward to React-Native layer by default
+                    DispatchQueue.main.async {
+                        pushedLib?.sendPushReceived(message)
+                    }
+                } else {
+                    log("[WS] App is in background, suppressing notification from WebSocket.")
                 }
             }
             return handled
