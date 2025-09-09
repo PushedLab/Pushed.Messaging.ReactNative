@@ -109,6 +109,10 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-android:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation("com.github.PushedLab:Pushed.Messaging.Android.Library:1.4.8.1")
+  implementation("com.github.PushedLab:Pushed.Messaging.Android.Library:1.5.1"){
+        // Example: Exclude HPK and RuStore, keeping only FCM
+        exclude group: 'com.huawei.hms', module: 'push'
+        exclude group: 'ru.rustore.sdk', module: 'pushclient'
+    }
 }
 
