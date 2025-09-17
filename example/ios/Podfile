@@ -59,8 +59,8 @@ target 'PushedReactNativeExample' do
 end
 
 target 'AppNotiService' do
-  # Notification Service Extension - no React Native dependencies needed
-  # This extension handles notification processing in native iOS code only
+  # Use only the Extension subspec without React Native dependencies
+  pod 'pushed-react-native/Extension', :path => '../..'
 end
 
 post_install do |installer|
