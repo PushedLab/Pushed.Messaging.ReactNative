@@ -24,6 +24,19 @@ public class PushedExtensionHelper: NSObject {
         // 2. Send confirmation to server
         confirmMessageDelivery(messageId)
     }
+
+    /// Send SHOW interaction (1) from Extension if needed by host app
+    /// NOTE: Not called automatically to avoid duplicates with the main app's UNUserNotificationCenter delegate
+    @objc
+    public static func sendShowInteraction(_ messageId: String) {
+        sendInteractionEvent(1, messageId: messageId)
+    }
+
+    /// Send CLICK interaction (2) from Extension if needed by host app (e.g. from Notification Content Extension)
+    @objc
+    public static func sendClickInteraction(_ messageId: String) {
+        sendInteractionEvent(2, messageId: messageId)
+    }
     
     // MARK: - Private Methods
     
@@ -105,6 +118,72 @@ public class PushedExtensionHelper: NSObject {
         
         task.resume()
         log("Confirmation request sent for messageId: \(messageId)")
+    }
+
+    /// Common function to send SHOW/CLICK interactions from Extension
+    private static func sendInteractionEvent(_ interaction: Int, messageId: String) {
+        guard interaction == 1 || interaction == 2 else {
+            log("[Interaction] ERROR: Unsupported interaction value: \(interaction)")
+            return
+        }
+
+        let interactionName = interaction == 1 ? "SHOW" : "CLICK"
+        log("[Interaction] Starting \(interactionName) event from Extension")
+
+        let clientToken = loadClientTokenFromKeychain()
+        guard !clientToken.isEmpty else {
+            log("[Interaction] ERROR: clientToken is empty")
+            return
+        }
+
+        let urlString = "https://api.multipushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
+        guard let url = URL(string: urlString) else {
+            log("[Interaction] ERROR: Invalid URL: \(urlString)")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let basicAuth = "Basic " + Data("\(clientToken):\(messageId)".utf8).base64EncodedString()
+        request.addValue(basicAuth, forHTTPHeaderField: "Authorization")
+
+        let body: [String: Any] = [
+            "clientToken": clientToken,
+            "messageId": messageId
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            log("[Interaction] ERROR: JSON Serialization Error: \(error.localizedDescription)")
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                log("[Interaction] \(interactionName): Request error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                log("[Interaction] \(interactionName): ERROR: No HTTPURLResponse")
+                return
+            }
+
+            let status = httpResponse.statusCode
+            let responseBody = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
+
+            if (200...299).contains(status) {
+                log("[Interaction] \(interactionName): SUCCESS - Status: \(status), Body: \(responseBody)")
+            } else {
+                log("[Interaction] \(interactionName): ERROR - Status: \(status), Body: \(responseBody)")
+            }
+        }
+
+        task.resume()
+        log("[Interaction] \(interactionName): HTTP task started")
     }
     
     private static func loadClientTokenFromKeychain() -> String {
