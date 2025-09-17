@@ -7,6 +7,12 @@ class NotificationService: UNNotificationServiceExtension {
 
     var contentHandler: ((UNNotificationContent) -> Void)?
     var bestAttemptContent: UNMutableNotificationContent?
+    
+    // MARK: - Constants
+    
+    private let kPushedAppGroupIdentifier = "group.ru.pushed.messaging"
+    private let kProcessedMessageIdsKey = "pushedMessaging.extensionProcessedMessageIds"
+    private let maxStoredMessageIds = 100 // Limit for extension storage
 
     override func didReceive(
         _ request: UNNotificationRequest,
@@ -26,6 +32,9 @@ class NotificationService: UNNotificationServiceExtension {
         if let messageId = request.content.userInfo["messageId"] as? String {
             NSLog("[Extension] Confirming message with ID: \(messageId)")
             confirmMessage(messageId: messageId)
+            
+            // Сохраняем messageId в App Group для дедупликации
+            saveMessageIdToAppGroup(messageId)
         } else {
             NSLog("[Extension] No messageId found for confirmation")
         }
@@ -125,5 +134,32 @@ class NotificationService: UNNotificationServiceExtension {
         
         task.resume()
         NSLog("[Extension Confirm] Confirmation request sent for messageId: \(messageId)")
+    }
+    
+    // MARK: - App Group Storage
+    
+    /// Сохраняет messageId в App Group для последующей дедупликации
+    private func saveMessageIdToAppGroup(_ messageId: String) {
+        guard let sharedDefaults = UserDefaults(suiteName: kPushedAppGroupIdentifier) else {
+            NSLog("[Extension AppGroup] ERROR: Cannot access App Group \(kPushedAppGroupIdentifier)")
+            return
+        }
+        
+        // Получаем текущий список или создаем новый
+        var processedIds = sharedDefaults.array(forKey: kProcessedMessageIdsKey) as? [String] ?? []
+        
+        // Добавляем новый messageId
+        processedIds.append(messageId)
+        
+        // Ограничиваем размер массива
+        if processedIds.count > maxStoredMessageIds {
+            processedIds = Array(processedIds.suffix(maxStoredMessageIds))
+        }
+        
+        // Сохраняем обратно
+        sharedDefaults.set(processedIds, forKey: kProcessedMessageIdsKey)
+        sharedDefaults.synchronize() // Force sync for extension
+        
+        NSLog("[Extension AppGroup] Saved messageId to App Group: \(messageId). Total stored: \(processedIds.count)")
     }
 } 

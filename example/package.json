@@ -10,8 +10,8 @@
     "build:ios": "react-native build-ios --scheme PushedReactNativeExample --mode Debug --extra-params \"-sdk iphonesimulator CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO\""
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@PushedLab/pushed-react-native": "file:..",
-    "@notifee/react-native": "^7.8.2",
     "react": "18.2.0",
     "react-native": "0.73.7"
   },

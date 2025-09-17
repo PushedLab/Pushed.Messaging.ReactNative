@@ -103,7 +103,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
-    private static let sdkVersion = "React-Native 1.1.0"
+    private static let sdkVersion = "React-Native 1.1.2"
     private static let operatingSystem = "iOS \(UIDevice.current.systemVersion)"
     
     // Services
@@ -278,6 +278,44 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         }
     }
     
+    /// Merge messageIds from App Group that were saved by Notification Service Extension
+    private static func mergeAppGroupMessageIds() {
+        guard let sharedDefaults = UserDefaults(suiteName: kPushedAppGroupIdentifier) else {
+            log("[Dedup] Cannot access App Group \(kPushedAppGroupIdentifier)")
+            return
+        }
+        
+        let extensionKey = "pushedMessaging.extensionProcessedMessageIds"
+        let extensionMessageIds = sharedDefaults.array(forKey: extensionKey) as? [String] ?? []
+        
+        guard !extensionMessageIds.isEmpty else {
+            log("[Dedup] No messageIds found in App Group from extension")
+            return
+        }
+        
+        log("[Dedup] Found \(extensionMessageIds.count) messageIds from extension in App Group")
+        
+        // Merge into our processedMessageIds set
+        var mergedCount = 0
+        for messageId in extensionMessageIds {
+            if !processedMessageIds.contains(messageId) {
+                processedMessageIds.insert(messageId)
+                mergedCount += 1
+            }
+        }
+        
+        // Save the merged set
+        if mergedCount > 0 {
+            saveProcessedIds(processedMessageIds)
+            log("[Dedup] Merged \(mergedCount) new messageIds from App Group. Total processed: \(processedMessageIds.count)")
+        }
+        
+        // Clear the extension queue after merging
+        sharedDefaults.removeObject(forKey: extensionKey)
+        sharedDefaults.synchronize()
+        log("[Dedup] Cleared extension messageIds queue in App Group")
+    }
+    
     /// Refreshes the pushed token
     private static func refreshPushedToken(in object: AnyObject, apnsToken: String) {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
@@ -387,7 +425,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     
     /// Confirms a message by ID
     /// NOTE: This function is now disabled in the main app and only works in NotificationService extension
-    /*
+
     public static func confirmMessage(messageId: String, application: UIApplication, in object: AnyObject, userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         let clientToken = getClientToken()
         let loginString = String(format: "%@:%@", clientToken, messageId)
@@ -429,7 +467,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         // Perform the task
         task.resume()
     }
-    */
+
     
     /// Initializes the library
     public static func setup(
@@ -486,6 +524,10 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
 
         // Load persisted dedup set at startup
         processedMessageIds = loadProcessedIds()
+        
+        // Merge messageIds from App Group (written by Notification Service Extension)
+        mergeAppGroupMessageIds()
+        
         // Clean up if too large
         if processedMessageIds.count > maxStoredMessageIds {
             log("[Dedup] Cleaning up processed IDs - was \(processedMessageIds.count), limiting to \(maxStoredMessageIds)")
