@@ -766,65 +766,8 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
-        let clientToken = getClientToken()
-        if clientToken.isEmpty {
-            log("[Interaction] ERROR: clientToken is empty")
-            return
-        }
-        
-        let urlString = "https://api.multipushed.ru/v2/mobile-push/confirm-client-interaction?clientInteraction=\(interaction)"
-        log("[Interaction] \(interactionName): messageId=\(messageId), clientToken=\(clientToken.prefix(10))..., url=\(urlString)")
-        
-        guard let url = URL(string: urlString) else {
-            log("[Interaction] ERROR: Invalid URL: \(urlString)")
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let basicAuth = "Basic " + Data("\(clientToken):\(messageId)".utf8).base64EncodedString()
-        log("[Interaction] \(interactionName): Authorization header created")
-        request.addValue(basicAuth, forHTTPHeaderField: "Authorization")
-        
-        let body: [String: Any] = [
-            "clientToken": clientToken,
-            "messageId": messageId
-        ]
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            log("[Interaction] \(interactionName): Request body created successfully")
-        } catch {
-            log("[Interaction] ERROR: JSON Serialization Error: \(error.localizedDescription)")
-            return
-        }
-        
-        log("[Interaction] \(interactionName): Sending HTTP request...")
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                log("[Interaction] \(interactionName): Request error: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                log("[Interaction] \(interactionName): ERROR: No HTTPURLResponse")
-                return
-            }
-            
-            let status = httpResponse.statusCode
-            let responseBody = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
-            
-            if (200...299).contains(status) {
-                log("[Interaction] \(interactionName): SUCCESS - Status: \(status), Body: \(responseBody)")
-            } else {
-                log("[Interaction] \(interactionName): ERROR - Status: \(status), Body: \(responseBody)")
-            }
-        }
-        
-        task.resume()
-        log("[Interaction] \(interactionName): HTTP task started")
+        // Delegate to extension-safe core client (shared with extension)
+        PushedCoreClient.sendInteraction(interaction, messageId: messageId)
     }
 
     // MARK: - UNUserNotificationCenterDelegate
