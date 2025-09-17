@@ -1075,6 +1075,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         applicationId = id
         log("applicationId set via setApplicationId(_:): \(id)")
     }
+    
 }
 
 // Extension to convert Data to a hex string
