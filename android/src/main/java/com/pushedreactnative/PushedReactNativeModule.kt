@@ -73,7 +73,7 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
           currentActivity,
           PushedBackgroundService::class.java, 
           applicationId = applicationId, 
-          currentSdk = "React-Native 1.1.1"
+          currentSdk = "React-Native 1.1.2"
         )
       }
 

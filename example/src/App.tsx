@@ -8,11 +8,15 @@ import {
   Clipboard,
   Alert,
   StatusBar,
+  NativeEventEmitter,
+  NativeModules,
 } from 'react-native';
 import {
   startService,
+  PushedEventTypes,
+  Push,
 } from '@PushedLab/pushed-react-native';
-// import { initNotifications } from './Notifee';
+import { initNotifications, displayNotification } from './Notifee';
 
 export default function App() {
   const [token, setToken] = useState('');
@@ -20,7 +24,7 @@ export default function App() {
   const [serviceActive, setServiceActive] = useState(false);
 
   useEffect(() => {
-    // initNotifications();
+    initNotifications();
     
     // Автоматически запускаем сервис при загрузке приложения
     console.log('Auto-starting Pushed Service');
@@ -34,24 +38,23 @@ export default function App() {
       setIsLoading(false);
     });
 
-    // Убираем обработку push событий - все трекинг происходит нативно
-    // const eventEmitter = new NativeEventEmitter(
-    //   NativeModules.PushedReactNative
-    // );
-    // const eventListener = eventEmitter.addListener(
-    //   PushedEventTypes.PUSH_RECEIVED,
-    //   (push: Push) => {
-    //     console.log(push);
-    //     displayNotification(
-    //       push?.title ?? '',
-    //       push?.body ?? JSON.stringify(push)
-    //     );
-    //   }
-    // );
+    const eventEmitter = new NativeEventEmitter(
+      NativeModules.PushedReactNative
+    );
+    const eventListener = eventEmitter.addListener(
+      PushedEventTypes.PUSH_RECEIVED,
+      (push: Push) => {
+        console.log(push);
+        displayNotification(
+          push?.title ?? '',
+          push?.body ?? JSON.stringify(push)
+        );
+      }
+    );
 
-    // return () => {
-    //   eventListener.remove();
-    // };
+    return () => {
+      eventListener.remove();
+    };
   }, []);
 
   const copyToClipboard = () => {
