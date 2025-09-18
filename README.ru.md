@@ -75,20 +75,46 @@ const handleStop = () => {
 2. Необходимо настроить ваше приложение для работы с apns в панели управления Pushed (см. статью)[https://pushed.ru/docs/apns/]
 3. Убедитесь, что приложение имеет разрешения Push Notifications и Background Modes -> Remote Notifications
 
-#### Настройка Notification Service Extension (iOS)
+#### iOS: Notification Service Extension (подтверждение + SHOW)
 
-Для автоматического подтверждения получения сообщений (*endpoint* `/confirm`) рекомендуется добавить **Notification Service Extension** в ваше iOS-приложение. Расширение перехватывает входящий push до его показа системой и отправляет подтверждение от имени пользователя.
+Рекомендуем добавить Extension, чтобы подтверждать доставку APNs до показа и исключить дубли с WebSocket.
 
-Шаги настройки:
+1) Podfile
+Добавьте отдельный под только для Extension:
+```ruby
+target 'AppNotiService' do
+  pod 'pushed-react-native-extension', :path => '../node_modules/@PushedLab/pushed-react-native'
+end
+```
 
-1. Откройте проект в **Xcode** и выберите `File ▸ New ▸ Target…`, затем в списке **iOS** выберите **Notification Service Extension**.
-2. Задайте имя, например `AppNotiService`, и завершите мастер. Xcode создаст файл `NotificationService.swift`.
-3. Замените содержимое созданного файла на пример из `example/ios/AppNotiService/NotificationService.swift` или адаптируйте под свои нужды.
-4. В **Signing & Capabilities** включите **Keychain Sharing** для *основного приложения* и *расширения* и убедитесь, что в обоих целей указана одна и та же access-group. Это даст расширению доступ к `clientToken`, сохранённому библиотекой в Keychain.
-5. Убедитесь, что расширение подписывается той же командой разработчика (**Team**) и имеет bundle identifier в том же пространстве, например `com.yourapp.notification-service`.
-6. Соберите приложение. При получении push-уведомления система запустит расширение, код библиотеки отправит запрос подтверждения, после чего уведомление будет показано пользователю.
+2) Импорт и код в Extension
+Используйте хелпер и один вызов:
+```swift
+import pushed_react_native_extension
 
-> Важно: payload пуша должен содержать поле `messageId`. Без него подтверждение отправлено не будет.
+@objc(NotificationService)
+class NotificationService: UNNotificationServiceExtension {
+  override func didReceive(_ request: UNNotificationRequest,
+                           withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+    let best = (request.content.mutableCopy() as? UNMutableNotificationContent) ?? request.content
+    if let messageId = request.content.userInfo["messageId"] as? String {
+      PushedExtensionHelper.processMessage(messageId) // App Group + confirm + SHOW по успеху
+    }
+    contentHandler(best)
+  }
+}
+```
+
+3) App Group (обязательно)
+- Включите App Group для приложения и Extension с одинаковым идентификатором, напр. `group.ru.pushed.messaging`.
+- Extension пишет обработанные `messageId` в App Group; при старте приложение сливает их в свой кэш, чтобы не показывать дубль из WebSocket после холодного старта.
+
+4) Keychain Sharing
+- Включите Keychain Sharing для обоих таргетов и укажите одну и ту же access‑group — Extension должен читать `clientToken`, сохранённый приложением.
+
+5) Примечания
+- В payload должен быть `messageId`.
+- Либа автоматически мерджит доставленные уведомления и App Group при старте.
 
 ### Описание методов и типов библиотеки pushed-react-native
 #### `startService(serviceName: string, applicationId?: string): Promise<string>`

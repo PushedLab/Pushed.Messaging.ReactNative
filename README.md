@@ -83,20 +83,49 @@ const handleStop = () => {
 2. You need to configure your application to work with apns in the Pushed control panel (see the article) [https://pushed.ru/docs/apns/]
 3. Make sure that the application has the Push Notifications and Background Modes -> Remote Notifications permissions
 
-#### Setting up an iOS Notification Service Extension
+#### iOS: Notification Service Extension (confirm + SHOW)
 
-To automatically confirm message delivery via the `/confirm` endpoint we recommend shipping a **Notification Service Extension** with your application. The extension intercepts the push before it is presented by the system and sends a confirmation on behalf of the user.
+We recommend adding a Notification Service Extension so APNs delivery is confirmed before display, and duplicates with WebSocket are avoided.
 
-Steps:
+1) Podfile
+Add a separate lightweight pod for the extension only:
+```ruby
+target 'AppNotiService' do
+  pod 'pushed-react-native-extension', :path => '../node_modules/@PushedLab/pushed-react-native'
+end
+```
 
-1. Open your project in **Xcode** and choose `File ▸ New ▸ Target…`. Select **Notification Service Extension** under the iOS tab.
-2. Pick a name, e.g. `AppNotiService`, and finish the wizard. Xcode will generate a `NotificationService.swift` file for you.
-3. Replace the generated file's contents with the example located at `example/ios/AppNotiService/NotificationService.swift` or adjust it to your needs.
-4. In **Signing & Capabilities** enable **Keychain Sharing** for both the **app target** and the **extension** and make sure they share the same access-group. This allows the extension to read the `clientToken` that the main app saved in the Keychain.
-5. Ensure the extension is signed with the same Apple Developer **Team** and uses a bundle identifier inside your app's namespace (e.g. `com.yourapp.notification-service`).
-6. Build and run. When a push arrives iOS will launch the extension, the confirmation request will be sent, and only then the notification will be shown to the user.
+The main app target uses autolinking and pulls the core pod automatically; no manual pod is needed there.
 
-> Note: the push payload must contain a `messageId` field; otherwise confirmation will be skipped.
+2) Import and code in the extension
+Use the helper shipped with the pod and call one method:
+```swift
+import pushed_react_native_extension
+
+@objc(NotificationService)
+class NotificationService: UNNotificationServiceExtension {
+  override func didReceive(_ request: UNNotificationRequest,
+                           withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+    let best = (request.content.mutableCopy() as? UNMutableNotificationContent) ?? request.content
+    if let messageId = request.content.userInfo["messageId"] as? String {
+      PushedExtensionHelper.processMessage(messageId) // saves to App Group, confirms, sends SHOW on success
+    }
+    contentHandler(best)
+  }
+}
+```
+
+3) App Group (required)
+- Add an App Group capability to BOTH the app target and the extension target.
+- Use the same identifier, e.g. `group.ru.pushed.messaging`.
+- The extension writes processed `messageId`s to the App Group store; on app startup the library merges them to avoid WS duplicates after a cold start.
+
+4) Keychain Sharing
+- Enable Keychain Sharing for both targets and keep the same access group so the extension can read the `clientToken` saved by the app.
+
+5) Notes
+- Push payload must include `messageId`.
+- The library automatically merges delivered notifications and App Group entries on startup.
 
 ### Description of Methods and Types in the `pushed-react-native` Library
 

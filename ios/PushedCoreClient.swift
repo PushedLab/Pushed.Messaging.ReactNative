@@ -36,23 +36,31 @@ public class PushedCoreClient: NSObject {
     /// Confirm APNs delivery (used by Notification Service Extension)
     @objc
     public static func confirmApnsDelivery(_ messageId: String) {
+        confirmApnsDelivery(messageId) { _ in }
+    }
+
+    /// Confirm APNs delivery with completion flag (success/failure)
+    public static func confirmApnsDelivery(_ messageId: String, completion: @escaping (Bool) -> Void) {
         log("Confirming APNs delivery for messageId: \(messageId)")
 
         let clientToken = loadClientTokenFromKeychain()
         guard !clientToken.isEmpty else {
             log("ERROR: clientToken is empty")
+            completion(false)
             return
         }
 
         let credentials = "\(clientToken):\(messageId)"
         guard let credentialsData = credentials.data(using: .utf8) else {
             log("ERROR: Could not encode credentials")
+            completion(false)
             return
         }
         let basicAuth = "Basic \(credentialsData.base64EncodedString())"
 
         guard let url = URL(string: "https://pub.multipushed.ru/v2/confirm?transportKind=Apns") else {
             log("ERROR: Invalid confirm URL")
+            completion(false)
             return
         }
 
@@ -65,17 +73,21 @@ public class PushedCoreClient: NSObject {
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 log("Confirm request error: \(error.localizedDescription)")
+                completion(false)
                 return
             }
             guard let http = response as? HTTPURLResponse else {
                 log("ERROR: No HTTPURLResponse")
+                completion(false)
                 return
             }
             let body = data.flatMap { String(data: $0, encoding: .utf8) } ?? "<no body>"
             if (200...299).contains(http.statusCode) {
                 log("Confirm APNs SUCCESS: status=\(http.statusCode), body=\(body)")
+                completion(true)
             } else {
                 log("Confirm APNs ERROR: status=\(http.statusCode), body=\(body)")
+                completion(false)
             }
         }
 

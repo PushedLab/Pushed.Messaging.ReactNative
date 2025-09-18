@@ -21,8 +21,16 @@ public class PushedExtensionHelper: NSObject {
         // 1. Save to App Group for deduplication
         saveMessageIdToAppGroup(messageId)
         
-        // 2. Send confirmation to server (shared core)
-        PushedCoreClient.confirmApnsDelivery(messageId)
+        // 2. Send confirmation to server (shared core) and only after success send SHOW
+        PushedCoreClient.confirmApnsDelivery(messageId) { success in
+            if success {
+                // Report SHOW only after successful confirm
+                PushedCoreClient.sendInteraction(1, messageId: messageId)
+                log("[Extension] SHOW interaction sent after confirm for messageId: \(messageId)")
+            } else {
+                log("[Extension] Skipping SHOW – confirm failed for messageId: \(messageId)")
+            }
+        }
     }
 
     /// Send SHOW interaction (1) from Extension if needed by host app

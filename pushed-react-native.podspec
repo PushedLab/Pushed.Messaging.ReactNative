@@ -50,9 +50,4 @@ Pod::Spec.new do |s|
     end
   end
   
-  # Extension subspec - only helper without React Native
-  s.subspec 'Extension' do |ext|
-    ext.source_files = "ios/PushedExtensionHelper.swift"
-    # No React Native dependencies here
-  end
 end

@@ -14,7 +14,6 @@ import {
 import {
   startService,
   PushedEventTypes,
-  Push,
 } from '@PushedLab/pushed-react-native';
 import { initNotifications, displayNotification } from './Notifee';
 
@@ -41,14 +40,58 @@ export default function App() {
     const eventEmitter = new NativeEventEmitter(
       NativeModules.PushedReactNative
     );
+
+    function extractTitleBody(input: any): { title: string; body: string } {
+      try {
+        // Native emits { message: string }, but allow direct object/string too
+        const raw = typeof input === 'string' ? input : (input?.message ?? input);
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+
+        // 1) pushedNotification format
+        const pn = parsed?.pushedNotification;
+        if (pn && (pn.Title || pn.Body)) {
+          return {
+            title: pn.Title ?? '',
+            body: pn.Body ?? '',
+          };
+        }
+
+        // 2) APNs aps.alert format
+        const aps = parsed?.aps;
+        if (aps?.alert) {
+          if (typeof aps.alert === 'string') {
+            return { title: '', body: aps.alert };
+          }
+          return {
+            title: aps.alert.title ?? '',
+            body: aps.alert.body ?? '',
+          };
+        }
+
+        // 3) Flat title/body
+        if (parsed?.title || parsed?.body) {
+          return { title: parsed.title ?? '', body: parsed.body ?? '' };
+        }
+
+        // 4) Fallback to data/message
+        const bodyStr =
+          typeof parsed?.data === 'string'
+            ? parsed.data
+            : parsed?.message ?? JSON.stringify(parsed ?? input);
+        return { title: 'Новое сообщение', body: bodyStr };
+      } catch (e) {
+        // Non‑JSON payload – show as text
+        const text = typeof input === 'string' ? input : JSON.stringify(input);
+        return { title: 'Новое сообщение', body: text };
+      }
+    }
+
     const eventListener = eventEmitter.addListener(
       PushedEventTypes.PUSH_RECEIVED,
-      (push: Push) => {
-        console.log(push);
-        displayNotification(
-          push?.title ?? '',
-          push?.body ?? JSON.stringify(push)
-        );
+      (payload: any) => {
+        console.log('PUSH_RECEIVED payload:', payload);
+        const { title, body } = extractTitleBody(payload);
+        displayNotification(title, body);
       }
     );
 
