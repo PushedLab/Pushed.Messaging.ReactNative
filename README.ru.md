@@ -87,36 +87,8 @@ target 'AppNotiService' do
 end
 ```
 
-2) Импорт и код в Extension
-Используйте хелпер и один вызов:
-```swift
-import pushed_react_native_extension
-
-@objc(NotificationService)
-class NotificationService: UNNotificationServiceExtension {
-  override func didReceive(_ request: UNNotificationRequest,
-                           withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-    let best = (request.content.mutableCopy() as? UNMutableNotificationContent) ?? request.content
-    if let messageId = request.content.userInfo["messageId"] as? String {
-      PushedExtensionHelper.processMessage(messageId) // App Group + confirm + SHOW по успеху
-    }
-    contentHandler(best)
-  }
-}
-```
-
-3) App Group (обязательно)
-- Включите App Group для приложения и Extension с одинаковым идентификатором, напр. `group.ru.pushed.messaging`.
-- Extension пишет обработанные `messageId` в App Group; при старте приложение сливает их в свой кэш, чтобы не показывать дубль из WebSocket после холодного старта.
-
-4) Keychain Sharing
-- Включите Keychain Sharing для обоих таргетов и укажите одну и ту же access‑group — Extension должен читать `clientToken`, сохранённый приложением.
-
-5) Примечания
-- В payload должен быть `messageId`.
-- Либа автоматически мерджит доставленные уведомления и App Group при старте.
-
-##### Полный код NotificationService.swift (пример)
+2) Импорт и код в Extension (полный пример)
+Ниже приведена полная реализация `NotificationService.swift`:
 ```swift
 import UserNotifications
 import Foundation
@@ -142,32 +114,36 @@ class NotificationService: UNNotificationServiceExtension {
 
         NSLog("[Extension] didReceiveNotificationRequest called with userInfo: \(request.content.userInfo)")
 
-        // Обрабатываем messageId через основную библиотеку
+        // Обрабатываем messageId через helper: сохраняет в App Group и подтверждает доставку
         if let messageId = request.content.userInfo["messageId"] as? String {
             NSLog("[Extension] Found messageId: \(messageId), delegating to PushedIosLib")
-            
-            // Вызываем метод из extension-safe helper класса:
-            // - Сохранит в App Group для дедупликации
-            // - Отправит подтверждение на сервер
             PushedExtensionHelper.processMessage(messageId)
         } else {
             NSLog("[Extension] No messageId found in notification")
         }
 
-        // Always send the content to system
+        // Всегда возвращаем контент системе
         contentHandler(bestAttemptContent)
     }
 
     override func serviceExtensionTimeWillExpire() {
-        // Вызывается прямо перед тем, как система завершит работу расширения.
-        // Используйте это как возможность доставить ваш "лучший" вариант измененного контента,
-        // в противном случае будет использована исходная полезная нагрузка push-уведомления.
         if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
             contentHandler(bestAttemptContent)
         }
     }
-} 
+}
 ```
+
+3) App Group (обязательно)
+- Включите App Group для приложения и Extension с одинаковым идентификатором, напр. `group.ru.pushed.messaging`.
+- Extension пишет обработанные `messageId` в App Group; при старте приложение сливает их в свой кэш, чтобы не показывать дубль из WebSocket после холодного старта.
+
+4) Keychain Sharing
+- Включите Keychain Sharing для обоих таргетов и укажите одну и ту же access‑group — Extension должен читать `clientToken`, сохранённый приложением.
+
+5) Примечания
+- В payload должен быть `messageId`.
+- Либа автоматически мерджит доставленные уведомления и App Group при старте.
 
 ### Описание методов и типов библиотеки pushed-react-native
 #### `startService(serviceName: string, applicationId?: string): Promise<string>`
