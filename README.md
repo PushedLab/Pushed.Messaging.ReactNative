@@ -97,37 +97,8 @@ end
 
 The main app target uses autolinking and pulls the core pod automatically; no manual pod is needed there.
 
-2) Import and code in the extension
-Use the helper shipped with the pod and call one method:
-```swift
-import pushed_react_native_extension
-
-@objc(NotificationService)
-class NotificationService: UNNotificationServiceExtension {
-  override func didReceive(_ request: UNNotificationRequest,
-                           withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-    let best = (request.content.mutableCopy() as? UNMutableNotificationContent) ?? request.content
-    if let messageId = request.content.userInfo["messageId"] as? String {
-      PushedExtensionHelper.processMessage(messageId) // saves to App Group, confirms, sends SHOW on success
-    }
-    contentHandler(best)
-  }
-}
-```
-
-3) App Group (required)
-- Add an App Group capability to BOTH the app target and the extension target.
-- Use the same identifier, e.g. `group.ru.pushed.messaging`.
-- The extension writes processed `messageId`s to the App Group store; on app startup the library merges them to avoid WS duplicates after a cold start.
-
-4) Keychain Sharing
-- Enable Keychain Sharing for both targets and keep the same access group so the extension can read the `clientToken` saved by the app.
-
-5) Notes
-- Push payload must include `messageId`.
-- The library automatically merges delivered notifications and App Group entries on startup.
-
-##### Full NotificationService.swift (example)
+2) Import and code in the extension (full example)
+Use the helper shipped with the pod; here is a complete extension implementation:
 ```swift
 import UserNotifications
 import Foundation
@@ -153,32 +124,37 @@ class NotificationService: UNNotificationServiceExtension {
 
         NSLog("[Extension] didReceiveNotificationRequest called with userInfo: \(request.content.userInfo)")
 
-        // Обрабатываем messageId через основную библиотеку
+        // Process messageId via helper: saves to App Group and confirms delivery
         if let messageId = request.content.userInfo["messageId"] as? String {
             NSLog("[Extension] Found messageId: \(messageId), delegating to PushedIosLib")
-            
-            // Вызываем метод из extension-safe helper класса:
-            // - Сохранит в App Group для дедупликации
-            // - Отправит подтверждение на сервер
             PushedExtensionHelper.processMessage(messageId)
         } else {
             NSLog("[Extension] No messageId found in notification")
         }
 
-        // Always send the content to system
+        // Always send content back to the system
         contentHandler(bestAttemptContent)
     }
 
     override func serviceExtensionTimeWillExpire() {
-        // Вызывается прямо перед тем, как система завершит работу расширения.
-        // Используйте это как возможность доставить ваш "лучший" вариант измененного контента,
-        // в противном случае будет использована исходная полезная нагрузка push-уведомления.
         if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
             contentHandler(bestAttemptContent)
         }
     }
-} 
+}
 ```
+
+3) App Group (required)
+- Add an App Group capability to BOTH the app target and the extension target.
+- Use the same identifier, e.g. `group.ru.pushed.messaging`.
+- The extension writes processed `messageId`s to the App Group store; on app startup the library merges them to avoid WS duplicates after a cold start.
+
+4) Keychain Sharing
+- Enable Keychain Sharing for both targets and keep the same access group so the extension can read the `clientToken` saved by the app.
+
+5) Notes
+- Push payload must include `messageId`.
+- The library automatically merges delivered notifications and App Group entries on startup.
 
 ### Description of Methods and Types in the `pushed-react-native` Library
 
