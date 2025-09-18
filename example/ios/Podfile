@@ -59,8 +59,8 @@ target 'PushedReactNativeExample' do
 end
 
 target 'AppNotiService' do
-  # Use only the Extension subspec without React Native dependencies
-  pod 'pushed-react-native/Extension', :path => '../..'
+  # Use a separate lightweight extension-only pod to avoid module collisions
+  pod 'pushed-react-native-extension', :path => '../..'
 end
 
 post_install do |installer|

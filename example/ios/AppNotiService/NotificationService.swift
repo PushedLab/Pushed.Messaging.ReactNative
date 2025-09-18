@@ -1,6 +1,6 @@
 import UserNotifications
 import Foundation
-import pushed_react_native
+import pushed_react_native_extension
 
 @objc(NotificationService)
 class NotificationService: UNNotificationServiceExtension {
