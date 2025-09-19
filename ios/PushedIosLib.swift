@@ -115,7 +115,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var applicationId: String?
     private static var processedMessageIds: Set<String> = []
     private static let processedMessageIdsKey = "pushedMessaging.processedMessageIds"
-    private static let maxStoredMessageIds = 1000
+    private static let maxStoredMessageIds = 10
 
     private static func loadProcessedIds() -> Set<String> {
         let arr = UserDefaults.standard.stringArray(forKey: processedMessageIdsKey) ?? []
@@ -737,7 +737,6 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             // Cancel any pending/delivered local notification for the same messageId (scheduled by WS)
             PushedIosLib.cancelLocalNotification(withMessageId: messageId)
             // NOTE: confirmMessage is now handled only by NotificationService extension
-            PushedIosLib.log("Message confirmation will be handled by NotificationService extension")
         } else {
             PushedIosLib.log("No message ID found.")
         }
