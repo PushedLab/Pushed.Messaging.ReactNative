@@ -119,6 +119,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
 
     private static func loadProcessedIds() -> Set<String> {
         let arr = UserDefaults.standard.stringArray(forKey: processedMessageIdsKey) ?? []
+        log("[Dedup][App] Loading processed IDs from UserDefaults.standard under key '\(processedMessageIdsKey)'. Count: \(arr.count)")
         return Set(arr)
     }
 
@@ -129,6 +130,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             idsArray = Array(idsArray.suffix(maxStoredMessageIds))
         }
         UserDefaults.standard.set(idsArray, forKey: processedMessageIdsKey)
+        log("[Dedup][App] Saved processed IDs to UserDefaults.standard under key '\(processedMessageIdsKey)'. Count: \(idsArray.count)")
     }
 
     public static func isMessageProcessed(_ messageId: String) -> Bool {
@@ -138,7 +140,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             processedMessageIds = loadProcessedIds()
         }
         let already = processedMessageIds.contains(messageId)
-        log("[Dedup] Check processed for messageId: \(messageId) → \(already)")
+        log("[Dedup] Check processed for messageId: \(messageId) → \(already) (source: in-memory set backed by UserDefaults.standard)")
         return already
     }
 
@@ -149,7 +151,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         }
         processedMessageIds.insert(messageId)
         saveProcessedIds(processedMessageIds)
-        log("[Dedup] Stored messageId as processed: \(messageId). Total stored: \(processedMessageIds.count)")
+        log("[Dedup][App] Stored messageId as processed in UserDefaults.standard: \(messageId). Total stored: \(processedMessageIds.count)")
     }
 
     public static func cancelLocalNotification(withMessageId messageId: String) {
@@ -293,7 +295,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
-        log("[Dedup] Found \(extensionMessageIds.count) messageIds from extension in App Group")
+        log("[Dedup][AppGroup] Found \(extensionMessageIds.count) messageIds in UserDefaults(suiteName: '\(kPushedAppGroupIdentifier)') under key '\(extensionKey)'")
         
         // Merge into our processedMessageIds set
         var mergedCount = 0
@@ -307,13 +309,13 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         // Save the merged set
         if mergedCount > 0 {
             saveProcessedIds(processedMessageIds)
-            log("[Dedup] Merged \(mergedCount) new messageIds from App Group. Total processed: \(processedMessageIds.count)")
+            log("[Dedup][AppGroup] Merged \(mergedCount) new messageIds from App Group into app's UserDefaults.standard. Total processed: \(processedMessageIds.count)")
         }
         
         // Clear the extension queue after merging
         sharedDefaults.removeObject(forKey: extensionKey)
         sharedDefaults.synchronize()
-        log("[Dedup] Cleared extension messageIds queue in App Group")
+        log("[Dedup][AppGroup] Cleared extension queue in UserDefaults(suiteName: '\(kPushedAppGroupIdentifier)') for key '\(extensionKey)'")
     }
     
     /// Refreshes the pushed token

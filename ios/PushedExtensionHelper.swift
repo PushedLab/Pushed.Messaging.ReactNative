@@ -58,12 +58,14 @@ public class PushedExtensionHelper: NSObject {
             return
         }
         
+        log("[Dedup][AppGroup] Using UserDefaults(suiteName: \(kPushedAppGroupIdentifier)) for dedup queue")
+        
         let extensionKey = "pushedMessaging.extensionProcessedMessageIds"
         var processedIds = sharedDefaults.array(forKey: extensionKey) as? [String] ?? []
         
         processedIds.append(messageId)
         
-        let maxIds = 100
+        let maxIds = 10
         if processedIds.count > maxIds {
             processedIds = Array(processedIds.suffix(maxIds))
         }
@@ -71,7 +73,15 @@ public class PushedExtensionHelper: NSObject {
         sharedDefaults.set(processedIds, forKey: extensionKey)
         sharedDefaults.synchronize()
         
-        log("Saved messageId to App Group: \(messageId). Total stored: \(processedIds.count)")
+        log("[Dedup][AppGroup] Saved messageId to suite '\(kPushedAppGroupIdentifier)': \(messageId). Total stored: \(processedIds.count)")
+
+        // Verify write by reading back
+        let verifyIds = sharedDefaults.array(forKey: extensionKey) as? [String] ?? []
+        if verifyIds.contains(messageId) {
+            log("[Dedup][AppGroup] Verified write OK for messageId: \(messageId) (stored count: \(verifyIds.count))")
+        } else {
+            log("[Dedup][AppGroup] ERROR: Write verification FAILED for messageId: \(messageId). Current stored: \(verifyIds)")
+        }
     }
     
     private static func confirmMessageDelivery(_ messageId: String) {
