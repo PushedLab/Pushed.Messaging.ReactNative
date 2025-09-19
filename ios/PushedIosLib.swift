@@ -103,7 +103,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
-    private static let sdkVersion = "React-Native 1.1.2"
+    private static let sdkVersion = "React-Native 1.1.3"
     private static let operatingSystem = "iOS \(UIDevice.current.systemVersion)"
     
     // Services
