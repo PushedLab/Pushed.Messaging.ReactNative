@@ -103,7 +103,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
-    private static let sdkVersion = "React-Native 1.1.3"
+    private static let sdkVersion = "React-Native 1.1.4"
     private static let operatingSystem = "iOS \(UIDevice.current.systemVersion)"
     
     // Services
@@ -334,7 +334,8 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
                 "sdkVersion": sdkVersion,
                 "operatingSystem": operatingSystem,
                 "displayPushNotificationsPermission": permissionGranted,
-                "mobileDeviceName": Device.current.description
+                "mobileDeviceName": Device.current.description, 
+                "platform": "ios"
             ]
 
             log("[Token] Current applicationId: \(applicationId ?? "<nil>")")
