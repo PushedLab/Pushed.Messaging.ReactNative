@@ -1,5 +1,4 @@
 const path = require('path');
-const pak = require('../package.json');
 
 module.exports = {
   project: {
@@ -8,8 +7,18 @@ module.exports = {
     },
   },
   dependencies: {
-    [pak.name]: {
-      root: path.join(__dirname, '..'),
+    '@PushedLab/pushed-react-native': {
+      platforms: {
+        ios: {
+          podspecPath: path.join(
+            __dirname,
+            'node_modules',
+            '@PushedLab',
+            'pushed-react-native',
+            'pushed-react-native.podspec'
+          ),
+        },
+      },
     },
   },
 };
