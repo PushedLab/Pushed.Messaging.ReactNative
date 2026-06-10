@@ -440,11 +440,29 @@ public class PushedWebSocketClient: NSObject {
                 
                 let content = UNMutableNotificationContent()
                 
-                // Extract notification content
-                if let aps = messageData["aps"] as? [String: Any] {
-                    // Handle APNS format
+                // pushedNotification takes priority over aps for visible title/body
+                if let pushedNotification = messageData["pushedNotification"] as? [String: Any] {
+                    content.title = (pushedNotification["title"] as? String)
+                        ?? (pushedNotification["Title"] as? String)
+                        ?? "Новое сообщение"
+                    content.body = (pushedNotification["body"] as? String)
+                        ?? (pushedNotification["Body"] as? String)
+                        ?? "Получено сообщение"
+                    content.sound = .default
+                    
+                    let soundName = (pushedNotification["sound"] as? String)
+                        ?? (pushedNotification["Sound"] as? String)
+                    if let soundName, !soundName.isEmpty {
+                        content.sound = UNNotificationSound(named: UNNotificationSoundName(soundName))
+                    }
+                    
+                    Self.addLog("Notification from pushedNotification: \(content.title) - \(content.body)")
+                } else if let aps = messageData["aps"] as? [String: Any] {
                     if let alert = aps["alert"] as? String {
-                        content.body = alert
+                        let trimmed = alert.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if !trimmed.hasPrefix("{") && !trimmed.hasPrefix("[") {
+                            content.body = alert
+                        }
                     } else if let alertDict = aps["alert"] as? [String: Any] {
                         content.title = alertDict["title"] as? String ?? ""
                         content.body = alertDict["body"] as? String ?? ""
@@ -459,18 +477,6 @@ public class PushedWebSocketClient: NSObject {
                     } else {
                         content.sound = .default
                     }
-                } else if let pushedNotification = messageData["pushedNotification"] as? [String: Any] {
-                    // Handle pushedNotification format
-                    content.title = pushedNotification["Title"] as? String ?? "Новое сообщение"
-                    content.body = pushedNotification["Body"] as? String ?? "Получено сообщение"
-                    content.sound = .default
-                    
-                    // Handle custom sound if specified
-                    if let soundName = pushedNotification["Sound"] as? String, !soundName.isEmpty {
-                        content.sound = UNNotificationSound(named: UNNotificationSoundName(soundName))
-                    }
-                    
-                    Self.addLog("Notification from pushedNotification: \(content.title) - \(content.body)")
                 } else {
                     // Handle WebSocket format without aps or pushedNotification
                     content.title = "Новое сообщение"

@@ -22,6 +22,17 @@ class NotificationService: UNNotificationServiceExtension {
 
         NSLog("[Extension] didReceiveNotificationRequest called with userInfo: \(request.content.userInfo)")
 
+        PushedExtensionHelper.applyDisplayContent(to: bestAttemptContent)
+
+        // // DEBUG: маркер в title — если видишь "[Ext]", extension точно отработал
+        // let marker = "[Ext] "
+        // if bestAttemptContent.title.isEmpty {
+        //     bestAttemptContent.title = "\(marker)Push"
+        // } else if !bestAttemptContent.title.hasPrefix(marker) {
+        //     bestAttemptContent.title = marker + bestAttemptContent.title
+        // }
+        // NSLog("[Extension] Final title: \(bestAttemptContent.title), body: \(bestAttemptContent.body)")
+
         // Обрабатываем messageId через основную библиотеку
         if let messageId = request.content.userInfo["messageId"] as? String {
             NSLog("[Extension] Found messageId: \(messageId), delegating to PushedIosLib")

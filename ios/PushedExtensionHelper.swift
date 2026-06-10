@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import UserNotifications
 
 /// Helper class for Notification Service Extension
 /// This class contains only extension-safe code without UIKit dependencies
@@ -45,11 +46,65 @@ public class PushedExtensionHelper: NSObject {
     public static func sendClickInteraction(_ messageId: String) {
         PushedCoreClient.sendInteraction(2, messageId: messageId)
     }
+
+    /// Rewrites notification title/body from `pushedNotification` (priority) before the system displays the banner.
+    @objc
+    public static func applyDisplayContent(to content: UNMutableNotificationContent) {
+        let userInfo = content.userInfo
+
+        if let pushedNotification = userInfo["pushedNotification"] as? [String: Any] {
+            if let title = stringValue(from: pushedNotification, keys: ["title", "Title"]) {
+                content.title = title
+            }
+            if let body = stringValue(from: pushedNotification, keys: ["body", "Body"]) {
+                content.body = body
+            }
+            if let soundName = stringValue(from: pushedNotification, keys: ["sound", "Sound"]) {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(soundName))
+            }
+            log("[Display] Applied pushedNotification: title='\(content.title)', body='\(content.body)'")
+            return
+        }
+
+        // Fallback: use aps.alert only when it looks like user-facing text, not a JSON blob.
+        if let aps = userInfo["aps"] as? [String: Any], let alert = aps["alert"] {
+            if let alertDict = alert as? [String: Any] {
+                if let title = stringValue(from: alertDict, keys: ["title", "Title"]) {
+                    content.title = title
+                }
+                if let body = stringValue(from: alertDict, keys: ["body", "Body", "subtitle"]) {
+                    content.body = body
+                }
+                log("[Display] Applied aps.alert dict: title='\(content.title)', body='\(content.body)'")
+            } else if let alertText = alert as? String, !looksLikeJSON(alertText) {
+                content.body = alertText
+                log("[Display] Applied aps.alert string: body='\(content.body)'")
+            }
+        }
+    }
     
     // MARK: - Private Methods
     
     private static func log(_ message: String) {
         print("[PushedExtension] \(message)")
+    }
+
+    private static func stringValue(from dictionary: [String: Any], keys: [String]) -> String? {
+        for key in keys {
+            guard let raw = dictionary[key] else { continue }
+            if raw is NSNull { continue }
+            guard let value = raw as? String else { continue }
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty || trimmed == "<null>" { continue }
+            return trimmed
+        }
+        return nil
+    }
+
+    private static func looksLikeJSON(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let first = trimmed.first else { return false }
+        return first == "{" || first == "["
     }
     
     private static func saveMessageIdToAppGroup(_ messageId: String) {

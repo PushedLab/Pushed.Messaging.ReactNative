@@ -103,7 +103,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
-    private static let sdkVersion = "React-Native 1.1.4"
+    private static let sdkVersion = "React-Native 1.1.6"
     private static let operatingSystem = "iOS \(UIDevice.current.systemVersion)"
     
     // Services
@@ -481,7 +481,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
         log("Start setup") 
         pushedToken = nil
         tokenCompletion.append(completion)  
-        // PushedIosLib.resetClientToken()
+        PushedIosLib.resetClientToken()
         // Only proxy AppDelegate if we're not in an app extension
         if !isAppExtension(), let appDelegate = appDelegate {
             proxyAppDelegate(appDelegate)
