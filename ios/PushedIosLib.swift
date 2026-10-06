@@ -73,9 +73,23 @@ public extension PushedIosLib {
     static func confirmMessage(_ response: UNNotificationResponse) {
         let userInfo = response.notification.request.content.userInfo
         // Reuse existing click flow: send CLICK interaction and open URL if present
-        if let messageId = userInfo["messageId"] as? String {
+        if userInfo["messageId"] as? String != nil {
             // Send CLICK event
             sendInteractionEvent(2, userInfo: userInfo)
+        }
+        openNotificationUrlIfPresent(userInfo)
+    }
+
+    /// `pushedNotification.url` is a server-side field: tapping the banner should follow it.
+    /// Accepts both casings — the backend serializes `Url`, but payloads built by hand often
+    /// use `url`, and the two have to behave the same.
+    static func openNotificationUrlIfPresent(_ userInfo: [AnyHashable: Any]) {
+        guard let pushedNotification = userInfo["pushedNotification"] as? [AnyHashable: Any] else { return }
+        let raw = (pushedNotification["Url"] as? String) ?? (pushedNotification["url"] as? String) ?? ""
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != "null", let url = URL(string: trimmed) else { return }
+        DispatchQueue.main.async {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
 }
@@ -103,7 +117,7 @@ public class PushedIosLib: NSObject, UNUserNotificationCenterDelegate {
     private static var pushedToken: String?
     private static var tokenCompletion:  [(String?) -> Void] = []
     private static var pushedLib: PushedReactNative?
-    private static let sdkVersion = "React-Native 1.1.6"
+    private static let sdkVersion = "React-Native 1.1.8"
     private static let operatingSystem = "iOS \(UIDevice.current.systemVersion)"
     
     // Services

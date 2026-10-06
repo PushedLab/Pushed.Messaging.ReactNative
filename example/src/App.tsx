@@ -10,10 +10,12 @@ import {
   StatusBar,
   NativeEventEmitter,
   NativeModules,
+  Platform,
 } from 'react-native';
 import {
   startService,
   PushedEventTypes,
+  setUseNativeNotifications,
 } from '@PushedLab/pushed-react-native';
 import { initNotifications, displayNotification } from './Notifee';
 
@@ -24,7 +26,11 @@ export default function App() {
 
   useEffect(() => {
     initNotifications();
-    
+
+    // На Android уведомление рисует нативный SDK — так работает переход по
+    // pushedNotification.url при нажатии. Должно стоять ДО startService.
+    setUseNativeNotifications(Platform.OS === 'android');
+
     // Автоматически запускаем сервис при загрузке приложения
     console.log('Auto-starting Pushed Service');
     startService('', '').then((newToken: string) => {
@@ -90,13 +96,29 @@ export default function App() {
       PushedEventTypes.PUSH_RECEIVED,
       (payload: any) => {
         console.log('PUSH_RECEIVED payload:', payload);
+        if (Platform.OS === 'android') return; // баннер уже показал нативный SDK
         const { title, body } = extractTitleBody(payload);
         displayNotification(title, body);
       }
     );
 
+    // На первом холодном запуске токен может быть ещё не готов в момент
+    // резолва startService() — приходит отдельным событием, когда готов.
+    const tokenListener = eventEmitter.addListener(
+      PushedEventTypes.TOKEN_UPDATED,
+      (payload: any) => {
+        if (payload?.token) {
+          console.log('TOKEN_UPDATED payload:', payload);
+          setToken(payload.token);
+          setServiceActive(true);
+          setIsLoading(false);
+        }
+      }
+    );
+
     return () => {
       eventListener.remove();
+      tokenListener.remove();
     };
   }, []);
 

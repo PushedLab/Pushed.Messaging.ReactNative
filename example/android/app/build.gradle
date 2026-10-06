@@ -1,6 +1,8 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply plugin: "com.google.gms.google-services"
+apply plugin: "com.huawei.agconnect"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -74,12 +76,12 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.pushedreactnative.example"
+    namespace "ru.pushed.pushed_demo"
     defaultConfig {
-        applicationId "com.pushedreactnative.example"
+        applicationId "ru.pushed.pushed_demo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 25
         versionName "1.0"
         
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", (findProperty("newArchEnabled") ?: false).toString()
@@ -92,10 +94,25 @@ android {
     
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            // When upload-keystore.jks is present locally, sign with it: its SHA256 fingerprint is
+            // the one registered in the Huawei AGC / RuStore consoles for ru.pushed.pushed_demo,
+            // so HPK and RuStore transports work. The key and its passwords are deliberately kept
+            // out of this repository — put them in ~/.gradle/gradle.properties as
+            // pushedStorePassword / pushedKeyAlias / pushedKeyPassword, or pass the matching
+            // PUSHED_* environment variables. A fresh clone without the key falls back to the
+            // standard debug keystore so that the example still builds (FCM only).
+            def uploadKey = file('upload-keystore.jks')
+            if (uploadKey.exists()) {
+                storeFile uploadKey
+                storePassword project.findProperty('pushedStorePassword') ?: System.getenv('PUSHED_STORE_PASSWORD')
+                keyAlias project.findProperty('pushedKeyAlias') ?: System.getenv('PUSHED_KEY_ALIAS') ?: 'upload'
+                keyPassword project.findProperty('pushedKeyPassword') ?: System.getenv('PUSHED_KEY_PASSWORD')
+            } else {
+                storeFile file('debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
         }
     }
     buildTypes {
@@ -103,8 +120,6 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"

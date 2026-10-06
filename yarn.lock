@@ -5,15 +5,11 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@PushedLab/pushed-react-native@github:PushedLab/Pushed.Messaging.ReactNative":
-  version: 1.1.4
-  resolution: "@PushedLab/pushed-react-native@https://github.com/PushedLab/Pushed.Messaging.ReactNative.git#commit=c4f59866093d3d59f320284ef9ae550b1d354663"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: afff1ca6f249fc23a0bfc40f48f600c412ee530166d9f89c3a85263ba7ad43aa6b92291894c8fd6ccb046db3fa4821dd1b3f980f84f8de8b402aeb1daa2138c1
+"@PushedLab/pushed-react-native@link:..::locator=pushed-react-native-example%40workspace%3Aexample":
+  version: 0.0.0-use.local
+  resolution: "@PushedLab/pushed-react-native@link:..::locator=pushed-react-native-example%40workspace%3Aexample"
   languageName: node
-  linkType: hard
+  linkType: soft
 
 "@PushedLab/pushed-react-native@workspace:.":
   version: 0.0.0-use.local
@@ -10755,7 +10751,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "pushed-react-native-example@workspace:example"
   dependencies:
-    "@PushedLab/pushed-react-native": "github:PushedLab/Pushed.Messaging.ReactNative"
+    "@PushedLab/pushed-react-native": "link:.."
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0

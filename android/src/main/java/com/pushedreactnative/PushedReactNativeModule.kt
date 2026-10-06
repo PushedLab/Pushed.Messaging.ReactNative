@@ -13,6 +13,8 @@ import org.json.JSONException
 import org.json.JSONObject
 import ru.pushed.messaginglibrary.PushedService
 import com.facebook.react.bridge.UiThreadUtil
+import android.os.Handler
+import android.os.Looper
 
 class PushedReactNativeModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -56,13 +58,30 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
 
   private var pushedService: PushedService? = null
 
+  // When true, the native SDK draws the notification itself, which also makes it honour
+  // `pushedNotification.url` on tap (PushedClickActivity -> ACTION_VIEW). Off by default:
+  // existing integrations render the banner in JS and would otherwise get a duplicate.
+  private var useNativeNotifications: Boolean = false
+
   @ReactMethod
   fun startService(serviceName: String, applicationId: String?, promise: Promise) {
     Log.d("PushedReactNative", "Initializing PushedService")
+    startServiceWithActivity(applicationId, promise, retriesLeft = 20)
+  }
 
+  // On cold start startService() can be called from JS before the Activity has
+  // attached to the React context (currentActivity is still null). Retry briefly
+  // instead of failing immediately, since the attach normally happens within ms.
+  private fun startServiceWithActivity(applicationId: String?, promise: Promise, retriesLeft: Int) {
     val currentActivity = currentActivity
     if (currentActivity == null) {
-      promise.reject("NO_ACTIVITY", "Current activity is null")
+      if (retriesLeft <= 0) {
+        promise.reject("NO_ACTIVITY", "Current activity is null")
+        return
+      }
+      Handler(Looper.getMainLooper()).postDelayed({
+        startServiceWithActivity(applicationId, promise, retriesLeft - 1)
+      }, 100)
       return
     }
 
@@ -71,17 +90,33 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
       if (pushedService == null) {
         pushedService = PushedService(
           currentActivity,
-          PushedBackgroundService::class.java, 
-          applicationId = applicationId, 
-          currentSdk = "React-Native 1.1.4"
+          PushedBackgroundService::class.java,
+          applicationId = applicationId,
+          currentSdk = "React-Native 1.1.8"
         )
+
+        // Токен может быть ещё не готов на момент первого запуска (получается
+        // асинхронно). Когда статус сервиса меняется, токен уже точно есть —
+        // шлём его в JS отдельным событием, чтобы UI обновился без перезахода.
+        pushedService?.setStatusHandler { _ ->
+          val updatedToken = pushedService?.pushedToken
+          if (!updatedToken.isNullOrEmpty()) {
+            val payload = JSONObject()
+            payload.put("token", updatedToken)
+            sendEvent(PushedEventType.TOKEN_UPDATED.name, payload)
+          }
+        }
       }
 
       // 2. Запускаем сервис и оборачиваем **только** получение токена в try/catch
       try {
         val token: String? = pushedService?.start { message ->
           sendEvent(PushedEventType.PUSH_RECEIVED.name, message)
-          false
+          // The return value tells the native SDK whether we handled the message ourselves.
+          // `true` suppresses its notification — that is the default, because the banner is
+          // normally drawn in JS. Returning `false` lets the SDK show it and, with it, follow
+          // `pushedNotification.url` when the user taps.
+          !useNativeNotifications
         }
 
         Log.i("PushedReactNative", "PushedService started with token: $token")
@@ -125,6 +160,15 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun removeListeners(count: Int) {
     Log.d("PushedReactNative", "Listeners removed, count: $count")
+  }
+
+  /// Enable before `startService` to let the native SDK render notifications. Needed if you
+  /// want `pushedNotification.url` to open on tap without handling it in JS; note that
+  /// `PUSH_RECEIVED` still fires, so don't also display the banner yourself.
+  @ReactMethod
+  fun setUseNativeNotifications(enabled: Boolean) {
+    useNativeNotifications = enabled
+    Log.d("PushedReactNative", "useNativeNotifications=$enabled")
   }
 
   // Optional: accept applicationId from JS for future use (currently ignored on Android)

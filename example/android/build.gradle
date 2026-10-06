@@ -11,11 +11,18 @@ buildscript {
       google()
       mavenCentral()
       maven { url 'https://jitpack.io' }
+      maven { url 'https://developer.huawei.com/repo/' }
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath 'com.google.gms:google-services:4.4.2'
+        classpath 'com.huawei.agconnect:agcp:1.5.2.300'
+        // Duplicate of the AGP entry above, pinned to the version RN's plugin actually
+        // resolves (8.1.1) — Huawei's agconnect plugin only detects AGP via a literal
+        // versioned classpath entry, not the unversioned one react-native-gradle-plugin uses.
+        classpath 'com.android.tools.build:gradle:8.1.1'
     }
 }
 

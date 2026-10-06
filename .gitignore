@@ -78,3 +78,13 @@ android/keystores/debug.keystore
 lib/
 yarn.lock
 package-lock.json
+
+# Signing keys and service accounts — never commit these, the repo is public
+*.jks
+*.keystore
+!android/keystores/debug.keystore
+!example/android/app/debug.keystore
+keystore/
+google-services.json
+agconnect-services.json
+*.log

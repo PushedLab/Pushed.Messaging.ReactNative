@@ -74,10 +74,10 @@ PODS:
   - hermes-engine/Pre-built (0.73.7)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
-  - pushed-react-native (1.1.4):
-    - pushed-react-native/Core (= 1.1.4)
-  - pushed-react-native-extension (1.1.4)
-  - pushed-react-native/Core (1.1.4):
+  - pushed-react-native (1.1.8):
+    - pushed-react-native/Core (= 1.1.8)
+  - pushed-react-native-extension (1.1.8)
+  - pushed-react-native/Core (1.1.8):
     - DeviceKit (~> 5.0)
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1361,8 +1361,8 @@ SPEC CHECKSUMS:
   hermes-engine: 39589e9c297d024e90fe68f6830ff86c4e01498a
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  pushed-react-native: d1e8190406400f47bc9c1a85e427bafad8e432e3
-  pushed-react-native-extension: 0d0c1c45e3e27984c3d1b12d8a6e47c930fac426
+  pushed-react-native: 22c12fda5a3eea6a6f06200a29fe2256e9856069
+  pushed-react-native-extension: 181230db2a00d3b84fa7e2b042014c8336d4b01e
   PushedMessagingiOSLibrary: b86cf3efc70d95b231fdaa25b4fcbcc53e262431
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 77f73950d15b8c1a2b48ba5b79020c3003d1c9b5
