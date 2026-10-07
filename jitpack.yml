@@ -1,0 +1,8 @@
+# JitPack builds the android/ native module. AGP 8.x needs JDK 17 — the default image
+# uses Java 8, which is why builds failed before. Pin JDK 17 here instead of hardcoding
+# org.gradle.java.home in gradle.properties (that path was machine-specific and invalid on CI).
+jdk:
+  - openjdk17
+before_install:
+  - sdk install java 17.0.10-open
+  - sdk use java 17.0.10-open
