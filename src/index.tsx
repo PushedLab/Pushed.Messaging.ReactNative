@@ -48,14 +48,8 @@ export function setApplicationId(applicationId: string): void {
   PushedReactNative.setApplicationId(applicationId);
 }
 
-/**
- * Android only. Call before `startService` to let the native SDK render notifications
- * instead of drawing them in JS. That is what makes `pushedNotification.url` open on tap
- * without any handling on your side.
- *
- * `PUSH_RECEIVED` still fires, so don't also display a banner yourself — you would get two.
- * On iOS the tap is handled natively in any case and the url is followed automatically.
- */
+// Android only. Call before startService to let the SDK draw notifications and open url on tap.
+// iOS handles the tap natively regardless.
 export function setUseNativeNotifications(enabled: boolean): void {
   if (Platform.OS !== 'android') return;
   PushedReactNative.setUseNativeNotifications(enabled);

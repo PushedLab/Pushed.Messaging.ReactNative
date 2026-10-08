@@ -58,9 +58,7 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
 
   private var pushedService: PushedService? = null
 
-  // When true, the native SDK draws the notification itself, which also makes it honour
-  // `pushedNotification.url` on tap (PushedClickActivity -> ACTION_VIEW). Off by default:
-  // existing integrations render the banner in JS and would otherwise get a duplicate.
+  // Let the native SDK draw notifications (and open url on tap). Off by default.
   private var useNativeNotifications: Boolean = false
 
   @ReactMethod
@@ -112,10 +110,7 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
       try {
         val token: String? = pushedService?.start { message ->
           sendEvent(PushedEventType.PUSH_RECEIVED.name, message)
-          // The return value tells the native SDK whether we handled the message ourselves.
-          // `true` suppresses its notification — that is the default, because the banner is
-          // normally drawn in JS. Returning `false` lets the SDK show it and, with it, follow
-          // `pushedNotification.url` when the user taps.
+          // true = handled in JS (default), false = let the SDK show the notification
           !useNativeNotifications
         }
 
@@ -162,9 +157,7 @@ class PushedReactNativeModule(reactContext: ReactApplicationContext) :
     Log.d("PushedReactNative", "Listeners removed, count: $count")
   }
 
-  /// Enable before `startService` to let the native SDK render notifications. Needed if you
-  /// want `pushedNotification.url` to open on tap without handling it in JS; note that
-  /// `PUSH_RECEIVED` still fires, so don't also display the banner yourself.
+  // Call before startService. Lets the SDK draw notifications so url opens on tap.
   @ReactMethod
   fun setUseNativeNotifications(enabled: Boolean) {
     useNativeNotifications = enabled

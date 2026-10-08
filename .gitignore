@@ -88,3 +88,4 @@ keystore/
 google-services.json
 agconnect-services.json
 *.log
+.idea/

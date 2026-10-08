@@ -72,17 +72,13 @@ extension PushedIosLib {
 public extension PushedIosLib {
     static func confirmMessage(_ response: UNNotificationResponse) {
         let userInfo = response.notification.request.content.userInfo
-        // Reuse existing click flow: send CLICK interaction and open URL if present
         if userInfo["messageId"] as? String != nil {
-            // Send CLICK event
             sendInteractionEvent(2, userInfo: userInfo)
         }
         openNotificationUrlIfPresent(userInfo)
     }
 
-    /// `pushedNotification.url` is a server-side field: tapping the banner should follow it.
-    /// Accepts both casings — the backend serializes `Url`, but payloads built by hand often
-    /// use `url`, and the two have to behave the same.
+    // Open pushedNotification.url on tap (accepts both Url and url).
     static func openNotificationUrlIfPresent(_ userInfo: [AnyHashable: Any]) {
         guard let pushedNotification = userInfo["pushedNotification"] as? [AnyHashable: Any] else { return }
         let raw = (pushedNotification["Url"] as? String) ?? (pushedNotification["url"] as? String) ?? ""
