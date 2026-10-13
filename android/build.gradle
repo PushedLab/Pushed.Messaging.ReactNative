@@ -109,6 +109,13 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-android:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation("com.github.PushedLab:Pushed.Messaging.Android.Library:1.5.8.1")
+  // RuStore and Huawei are optional transports guarded by reflection in the library.
+  // Excluded so consumers don't need the private VK/Huawei maven repos. If you ship to
+  // devices without Google Play, add these back with the matching repositories.
+  implementation("com.github.PushedLab:Pushed.Messaging.Android.Library:1.5.8.1") {
+    exclude group: 'ru.rustore.sdk'
+    exclude group: 'com.huawei.hms'
+    exclude group: 'com.huawei.agconnect'
+  }
 }
 
