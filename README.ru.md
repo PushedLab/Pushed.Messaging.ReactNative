@@ -9,8 +9,17 @@
 #### 1. Установите библиотеку
 Запустите следующую команду, чтобы установить библиотеку:
 ```bash
-npm install pushed-react-native --registry=https://son.multifactor.dev:5443/repository/pushed-npm
+npm install github:PushedLab/Pushed.Messaging.ReactNative
 ```
+
+Можно указать конкретную версию или ветку:
+```bash
+npm install github:PushedLab/Pushed.Messaging.ReactNative#main
+npm install github:PushedLab/Pushed.Messaging.ReactNative#1.2.0
+```
+
+> Устанавливайте через `npm`, а не `yarn` — yarn не собирает `lib/` для git-зависимостей.
+> Теги указываются без префикса `v`, например `#1.2.0`.
 
 #### 2. Импортируйте необходимые методы и типы
 Импортируйте необходимые методы и типы из библиотеки:
@@ -158,10 +167,32 @@ class NotificationService: UNNotificationServiceExtension {
 Эта функция останавливает службу push-уведомлений.
 - **Возвращаемое значение:**
  - `Promise<string>`, который резолвится сообщением, указывающим, что служба остановлена.
+#### `setApplicationId(applicationId: string): void`
+Задаёт `applicationId` Pushed до вызова `startService`.
+
+#### `setUseNativeNotifications(enabled: boolean): void`
+Только Android. Вызовите до `startService`, чтобы уведомления рисовал нативный SDK, а не
+JS. Именно это заставляет `pushedNotification.url` открываться по нажатию без обработки
+на вашей стороне.
+
+```javascript
+import { startService, setUseNativeNotifications } from '@PushedLab/pushed-react-native';
+
+setUseNativeNotifications(true);   // до startService
+await startService('', '');
+```
+
+Событие `PUSH_RECEIVED` по-прежнему приходит, поэтому на Android не показывайте баннер
+сами — иначе на один пуш придут два уведомления. На iOS нажатие обрабатывается нативно,
+и url открывается автоматически, настройка не нужна.
+
 #### `PushedEventTypes`
 Это перечисление содержит типы событий, с которыми работает система Pushed.ru
 - **Перечисляемые значения:**
  - `PUSH_RECEIVED`: представляет тип события при получении push-уведомления.
+ - `TOKEN_UPDATED`: срабатывает, когда клиентский токен выдан или изменился. При холодном
+   старте токен может быть ещё не готов к моменту резолва `startService`, поэтому
+   подписывайтесь и на это событие.
 #### `Push`
 Это класс, представляющий push-уведомление, он является оберткой произвольного словаря key-value
  - **Constructor:**

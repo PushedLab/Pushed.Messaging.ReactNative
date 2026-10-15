@@ -178,11 +178,32 @@ This function stops the push notification service.
 - **Returns:**
   - A `Promise<string>` that resolves with a message indicating that the service has been stopped.
 
+#### `setApplicationId(applicationId: string): void`
+Sets the Pushed `applicationId` before `startService` is called.
+
+#### `setUseNativeNotifications(enabled: boolean): void`
+Android only. Call it before `startService` to let the native SDK draw notifications
+instead of rendering them in JS. This is what makes `pushedNotification.url` open on tap
+without any handling on your side.
+
+```javascript
+import { startService, setUseNativeNotifications } from '@PushedLab/pushed-react-native';
+
+setUseNativeNotifications(true);   // before startService
+await startService('', '');
+```
+
+`PUSH_RECEIVED` is still emitted, so skip your own `displayNotification` on Android —
+otherwise a single push produces two banners. On iOS the tap is handled natively and the
+url is followed automatically, no setup needed.
+
 #### `PushedEventTypes`
 This enum contains the types of events that the Pushed.ru system works with.
 
 - **Enum Values:**
   - `PUSH_RECEIVED`: Represents the event type for receiving a push notification.
+  - `TOKEN_UPDATED`: Fired when the client token is issued or changed. On a cold start the
+    token may not be ready when `startService` resolves, so subscribe to this event too.
 
 #### `Push`
 This class represents a push notification and is a wrapper over an arbitrary key-value dictionary.
