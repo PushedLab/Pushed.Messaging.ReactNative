@@ -87,8 +87,7 @@ android {
   }
 }
 
-// Add these repositories for the whole build so that applications that depend on the
-// library can resolve its transitive dependencies (e.g. RuStore & Huawei SDK).
+// Repositories for the library's transitive deps (RuStore, Huawei).
 rootProject.allprojects {
   repositories {
     google()
