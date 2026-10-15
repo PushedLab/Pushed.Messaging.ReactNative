@@ -14,11 +14,11 @@ npm install github:PushedLab/Pushed.Messaging.ReactNative
 Or you can specify a specific version or branch:
 ```bash
 npm install github:PushedLab/Pushed.Messaging.ReactNative#main
-npm install github:PushedLab/Pushed.Messaging.ReactNative#1.1.9
+npm install github:PushedLab/Pushed.Messaging.ReactNative#1.2.0
 ```
 
 > Use `npm`, not `yarn` — yarn doesn't build the library's `lib/` for git dependencies.
-> Install tags without the `v` prefix, e.g. `#1.1.9`.
+> Install tags without the `v` prefix, e.g. `#1.2.0`.
 
 ### Usage Instructions
 Follow these steps to use the `pushed-react-native` package in your React Native application.
